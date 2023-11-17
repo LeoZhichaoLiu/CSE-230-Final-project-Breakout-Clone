@@ -1,4 +1,4 @@
-# CSE-230-Final-project-Breakout-Clone
+# CSE-230-Final-project-Burp
 ## Project Proposal 
 
 ### Basic Goal:
