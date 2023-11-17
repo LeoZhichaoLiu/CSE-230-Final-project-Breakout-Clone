@@ -15,3 +15,9 @@ Our primary objective is to develop an engaging and strategic TUI game named "Bu
 2. Larger Arena: the camera only shows part of the arena. Player’s position is fixed in the middle of the camera. As the player moves, the camera follows the player and displays a new part of the arena corresponding to the player's operation. Other bacterias are not added to the arena randomly. Instead, the distribution of bacterias is determined at the beginning of the game.
 3. Game Levels: Add game levels with different difficulties.
 
+
+## Group Members
+1.
+2.
+3.
+4. Zefang Yuan
