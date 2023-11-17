@@ -17,7 +17,7 @@ Our primary objective is to develop an engaging and strategic TUI game named "Bu
 
 
 ## Group Members
-1.
-2.
-3.
+1. Zhichao Liu
+2. Zhongyi Wang
+3. Gongxuan Liu
 4. Zefang Yuan
