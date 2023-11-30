@@ -21,3 +21,14 @@ Our primary objective is to develop an engaging and strategic TUI game named "Bu
 2. Zhongyi Wang
 3. Gongxuan Liu
 4. Zefang Yuan
+
+
+# Milestone 2: Update
+
+## What is the architecture of your application (the key components)?
+
+## What challenges (if any) did you have so far and how did you solve them?
+
+## Do you expect to meet your goals until the deadline?
+
+## If not, how will you modify your goals?
