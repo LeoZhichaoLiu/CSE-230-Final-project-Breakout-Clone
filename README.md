@@ -57,6 +57,7 @@ Our primary objective is to develop an engaging and strategic TUI game named "Bu
    
 2. Bacteria collision detection: implementing collision detection, especially handling collisions between multiple bacteria simultaneosly, would be more challenging than we could imagine. It would be necessary to consider design several algorithm, such as spatial partitioning, or redesign the arena rules, to reduce computational overhead. Optimize the collision resolution algorithm to ensure both accuracy and efficiency.
 
+3. Enhance the implementation of game difficulty: precisely defining the nuanced aspects of difficulty proves challenging. Factors such as the speed of active evasion and attack, the proliferation of bacteriophages, and other elements contribute to the complexity. Striking a delicate balance between difficulty levels and ensuring an optimal user experience presents a formidable challenge.
 
 ## Do you expect to meet your goals until the deadline?
 
