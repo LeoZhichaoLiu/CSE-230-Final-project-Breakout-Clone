@@ -25,7 +25,30 @@ Our primary objective is to develop an engaging and strategic TUI game named "Bu
 
 # Milestone 2: Update
 
-## What is the architecture of your application (the key components)?
+## Architecture / key components
+
+1. Basic Design Idea: Manages the game loop and overall state; Handles player's input (up/down/left/right) and updates the game state accordingly; Controls the initialization and rendering of the microbial pool and bacteria entities.
+
+2. Components Design<br>
+  (a) Game main loop;<br>
+  (b) Input handlers;<br>
+  (c) Microbial arena state managements;<br>
+  (d) Rendering.
+
+4. Brick Objects Design<br>
+  (a) Microbial pool widget;<br>
+  (b) Bacteria widgets (for both player-controlled and NPC bacteria);<br>
+  (c) Event Handlers, including player's control, NPC's movement, player's information updates.
+
+3. Interactions Design<br>
+  (a) Bacteria entity model;<br>
+  (b) Arena initialization logic model;<br>
+  (c) Collision detection and resolution.
+
+4. Game Rules and requirements<br>
+  (a) Level tracking for both player's and NPC's information;<br>
+  (b) Collision and absorption logic;<br>
+  (c) Score tracking and display.
 
 ## What challenges (if any) did you have so far and how did you solve them?
 
