@@ -27,13 +27,14 @@ Our primary objective is to develop an engaging and strategic TUI game named "Bu
 
 ## Architecture / key components
 
-1. Basic Design Idea: Manages the game loop and overall state; Handles player's input (up/down/left/right) and updates the game state accordingly; Controls the initialization and rendering of the microbial pool and bacteria entities.
+1. Basic Design Idea: Manages the game loop and overall state; Handles player's input (up/down/left/right) and updates the game state accordingly; Controls the initialization and rendering of the microbial pool and bacteria entities; Designs the basic UI including control panel, score area, game area etc.
 
 2. Components Design<br>
   (a) Game main loop;<br>
   (b) Input handlers;<br>
   (c) Microbial arena state managements;<br>
-  (d) Rendering.
+  (d) Objects Rendering.
+  (e) UI Design
 
 4. Brick Objects Design<br>
   (a) Microbial pool widget;<br>
@@ -63,4 +64,4 @@ It might not be expected to meet all our goals before the deadline.
 
 ## If not, how will you modify your goals?
 
-To complete the games, we should at least complete the arena setting and game initialization to start a basic game model. For the more advanced game mechanism such as leveling up and random NPC movement would be put into a lower priority to accomplish before the deadline.
+To complete the games, we should at least complete the arena setting and game initialization to start a basic game model. For the more advanced game mechanism such as leveling up and random NPC movement would be put into a lower priority to accomplish before the deadline. Currently we are working on the general UI and try to finish the basic logic of game controlling. 
