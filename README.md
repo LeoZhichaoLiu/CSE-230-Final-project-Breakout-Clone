@@ -33,7 +33,7 @@ Our primary objective is to develop an engaging and strategic TUI game named "Bu
   (a) Game main loop;<br>
   (b) Input handlers;<br>
   (c) Microbial arena state managements;<br>
-  (d) Objects Rendering.
+  (d) Objects Rendering.<br>
   (e) UI Design
 
 4. Brick Objects Design<br>
