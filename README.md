@@ -50,8 +50,17 @@ Our primary objective is to develop an engaging and strategic TUI game named "Bu
   (b) Collision and absorption logic;<br>
   (c) Score tracking and display.
 
-## What challenges (if any) did you have so far and how did you solve them?
+## Challenges and Solutions
+
+1. Brick installation and initialization: while working with the Brick library, we encounter issues related to specific functionalities or understanding its documentation, including the installation on different operating systems locally. It's necessary to refer to Brick's documentation, demo examples, and community support.
+   
+2. Bacteria collision detection: implementing collision detection, especially handling collisions between multiple bacteria simultaneosly, would be more challenging than we could imagine. It would be necessary to consider design several algorithm, such as spatial partitioning, or redesign the arena rules, to reduce computational overhead. Optimize the collision resolution algorithm to ensure both accuracy and efficiency.
+
 
 ## Do you expect to meet your goals until the deadline?
 
+It might not be expected to meet all our goals before the deadline.
+
 ## If not, how will you modify your goals?
+
+To complete the games, we should at least complete the arena setting and game initialization to start a basic game model. For the more advanced game mechanism such as leveling up and random NPC movement would be put into a lower priority to accomplish before the deadline.
