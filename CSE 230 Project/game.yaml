@@ -1,0 +1,7 @@
+resolver: lts-17.9
+packages:
+- '.'
+- vty-6.1
+extra-deps: []
+flags: {}
+extra-package-dbs: []
