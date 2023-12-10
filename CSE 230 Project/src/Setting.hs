@@ -155,9 +155,9 @@ eventHandler (AppEvent Event) = do
                                           bact .= bactPosition
 
                                     cur_level <- use level
-                                    when (cur_level == 2 && the_score > 0 && the_score `mod` 100 == 0) $ do
+                                    when (cur_level > 1 && the_score > 0 && the_score `mod` 100 == 0) $ do
                                       let num = the_score `div` 100
-                                      enemies_list <- liftIO $ initEnemy (10 + num * 3)
+                                      enemies_list <- liftIO $ initEnemy (10 + cur_level * num * 3)
                                       enemies .= enemies_list
 
                                     cur_glucoses <- use glucoses
@@ -225,13 +225,20 @@ eventHandler (VtyEvent (V.EvKey (V.KChar 'r') [])) = do
                                                   win .= False
                                                   end .= False
                                                   score .= 0
+                                                  enemies_list <- liftIO $ initEnemy (10)
+                                                  enemies .= enemies_list
+                                                  level .= 1
+                                                  
 eventHandler (VtyEvent (V.EvKey (V.KChar 'g') [])) = do 
                                                   bact .= (V2 10 10)
                                                   win .= False
                                                   end .= False
                                                   score .= 0   
                                                   cur_level <- use level
-                                                  level .= (cur_level + 1)               
+                                                  level .= (cur_level + 1) 
+                                                  enemies_list <- liftIO $ initEnemy (10 + cur_level * 3)
+                                                  enemies .= enemies_list
+
 -- Put Esc to quit the game
 eventHandler (VtyEvent (V.EvKey V.KEsc []))        = halt
 eventHandler _                                     = return ()
@@ -240,10 +247,10 @@ eventHandler _                                     = return ()
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-    [   (attrName "bactAttr", V.white `on` V.white),  
-        (attrName "glucAttr", V.white `on` V.white),  
-        (attrName "spaceAttr", V.white `on` V.white),  -- Board is White
-        (attrName "enemyAttr", V.white `on` V.white) 
+    [   (attrName "bactAttr", V.black `on` V.black),  
+        (attrName "glucAttr", V.black `on` V.black),  
+        (attrName "spaceAttr", V.black `on` V.black),  -- Board is White
+        (attrName "enemyAttr", V.black `on` V.black) 
     ]
 
 
