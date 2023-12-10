@@ -169,7 +169,8 @@ eventHandler (AppEvent Event) = do
 
                                     enemies' <- use enemies
                                     cur_life <- use life
-                                    let catch_by_enemy = (isEnemyAtPos bactPosition enemies') 
+                                    let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
+                                    enemies .= newEnemyList
                                     when (catch_by_enemy) $ do
                                       life .= (cur_life - 1)
 
@@ -333,3 +334,15 @@ antiChaseX thePos bactPos =
 antiChaseY :: Pos -> Pos -> Pos
 antiChaseY thePos bactPos =
     thePos & _y %~ (\x -> (x - 1) `mod` height)
+
+-- 将处于Pos上的的敌人的 _enAlive 设置为 False
+setEnemyDead :: Pos -> [Enemy] -> [Enemy]
+setEnemyDead pos enemies = map (\enemy -> if _enPos enemy == pos then enemy { _enAlive = False } else enemy) enemies
+
+-- 判断敌人是否碰撞在Pos这个位置上
+isEnemyHitBact :: Pos -> [Enemy] -> ([Enemy], Bool)
+isEnemyHitBact pos enemies =
+  let (hitEnemies, remainingEnemies) = partition (\enemy -> _enPos enemy == pos && _enAlive enemy) enemies
+      hit = not (null hitEnemies)
+      updatedEnemies = map (\enemy -> if _enPos enemy == pos then enemy { _enAlive = False } else enemy) remainingEnemies
+  in (updatedEnemies, hit)
