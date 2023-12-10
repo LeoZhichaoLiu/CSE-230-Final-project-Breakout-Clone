@@ -21,7 +21,7 @@ import System.Random (Random(..), newStdGen)
 data GameState = GameState
   { _bact  :: Pos        -- Bacteria Position
   , _dir    :: Direction    -- Current Bacteria Position (to determine what it should go)
-  , _food   :: Pos       -- Food Position
+  , _glucoses   :: [Glucose]       -- Glucose Position
   , _enemies  :: [Enemy]  -- List of next Food Positio
   , _end   :: Bool      -- Whether Game is Over
   , _score  :: Int       -- The Current Score
@@ -36,6 +36,12 @@ data Enemy = Enemy
 height, width :: Int
 height = 40
 width = 40
+
+data Glucose = Glucose
+  { _gluPos :: Pos
+  } deriving (Show)
+
+
 
 -- Position for each element
 type Pos = V2 Int
@@ -63,14 +69,14 @@ makeLenses ''GameState
 initState :: IO GameState
 initState = do
   -- 随机生成所有食物的地方
-  (f :| fs) <-
-    fromList . randomRs (V2 0 0, V2 (width - 1) (height - 1)) <$> newStdGen
+  --(f :| fs) <-
+  --fromList . randomRs (V2 0 0, V2 (width - 1) (height - 1)) <$> newStdGen
   let xm = width `div` 2
       ym = height `div` 2
       -- 生成state的初始状态
       state  = GameState
         { _bact  = (V2 xm ym)
-        , _food   = f
+        , _glucoses   = [(Glucose (V2 5 15)), (Glucose (V2 6 25))]
         , _end    = False
         , _enemies = [(Enemy (V2 3 3) 1 True), (Enemy (V2 20 10) 1 True)]
         , _score  = 0
