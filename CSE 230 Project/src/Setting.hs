@@ -80,7 +80,7 @@ drawBoard state = withBorderStyle BS.unicodeBold
     createCellList y = [ createCell (V2 x y) | x <- [0..width-1]]
     -- Draw each cell with different color according to its attributes (bact, food, space etc)
     createCell pos = if pos == (state ^. bact) then withAttr (attrName "bactAttr") (str "  ")
-                     else if pos == (state ^. food) then withAttr (attrName "foodAttr") (str "  ")
+                     else if isGlucoseAtPos pos (state ^. glucoses) then withAttr (attrName "glucAttr") (str "  ")
                      else if isEnemyAtPos pos (state ^. enemies) then withAttr (attrName "enemyAttr") (str "  ")
                      else  withAttr (attrName "spaceAttr") (str "  ")
 
@@ -96,7 +96,7 @@ eventHandler (AppEvent Event) = do
                                     then halt
                                     else do
                                           bactPosition <- use bact
-                                          foodPosition <- use food
+                                          --foodPosition <- use food
                                           --randomX <- liftIO $ randomRIO (-1, 1)
                                           --randomY <- liftIO $ randomRIO (-1, 1)
                                           -- --
@@ -108,16 +108,17 @@ eventHandler (AppEvent Event) = do
                                               oldEnemies <- use enemies
                                               newEnemies <- liftIO $ updateEnemyPos bactPosition oldEnemies
                                               enemies .= newEnemies
-                                              if (the_score `mod` 4 == 0)
-                                                then do food .= chaseX foodPosition bactPosition
-                                                else do food .= chaseY foodPosition bactPosition
+                                              
+                                              oldGlucoses <- use glucoses
+                                              newGlucoses <- liftIO $ updateGlucosePos bactPosition oldGlucoses
+                                              glucoses .= newGlucoses
                                             else do
                                               -- randomX <- liftIO $ randomRIO (-1, 1)
                                               -- randomY <- liftIO $ randomRIO (-1, 1)
                                               -- food %= over _x (\x -> (x + randomX) `mod` width)
                                               -- food %= over _y (\x -> (x + randomY) `mod` height)
-                                              food .= foodPosition
-                                          let shouldIncreaseScore = bactPosition == foodPosition
+                                              bact .= bactPosition
+                                          let shouldIncreaseScore = (bactPosition /= bactPosition)
                                           when shouldIncreaseScore $ do
                                             end .= True
                                           
@@ -144,21 +145,11 @@ eventHandler _                                     = return ()
 theMap :: AttrMap
 theMap = attrMap V.defAttr
     [   (attrName "bactAttr", V.red `on` V.red),  -- Bacterial is Red
-        (attrName "foodAttr", V.green `on` V.green),  -- Food is Green
+        (attrName "glucAttr", V.green `on` V.green),  -- Glucose is Green
         (attrName "spaceAttr", V.white `on` V.white),  -- Board is White
-        (attrName "enemyAttr", V.black `on` V.black)
+        (attrName "enemyAttr", V.black `on` V.black) -- Enemy is black
     ]
 
--- Original
--- chase :: Pos -> Pos -> Pos
--- chase foodPos bactPos =
---   case compare (foodPos ^._x) (bactPos ^._x) of
---     LT -> foodPos & _x %~ (\x -> (x + 1) `mod` width)
---     GT -> foodPos & _x %~ (\x -> (x - 1) `mod` width)
---     EQ -> case compare (foodPos ^._y) (bactPos ^._y) of
---       LT -> foodPos & _y %~ (\y -> (y + 1) `mod` height)
---       GT -> foodPos & _y %~ (\y -> (y - 1) `mod` height)
---       EQ -> foodPos -- Food has reached the bacteria
 
 chaseX :: Pos -> Pos -> Pos
 chaseX thePos bactPos =
@@ -194,3 +185,33 @@ updateEnemyChasePlayer playerPos enemy =
           let newPos = chaseY (_enPos enemy) playerPos
           return $ enemy {_enPos = newPos}
     else return enemy
+
+isGlucoseAtPos :: Pos -> [Glucose] -> Bool
+isGlucoseAtPos pos glucoses = any (\g -> _gluPos g == pos) glucoses
+
+updateGlucosePos :: Pos -> [Glucose] -> IO [Glucose]
+updateGlucosePos bacPos glucoses = 
+    mapM (\g -> updateGlucoseAntiChasePlayer bacPos g) glucoses
+
+updateGlucoseAntiChasePlayer :: Pos -> Glucose -> IO Glucose
+updateGlucoseAntiChasePlayer playerPos g = do
+    ifX <- randomRIO (1, 100) :: IO Int
+    if ifX == 1
+      then do
+        let newPos = antiChaseX (_gluPos g) playerPos
+        return $ g {_gluPos = newPos}
+      else do
+        let newPos = antiChaseY (_gluPos g) playerPos
+        return $ g {_gluPos = newPos}
+
+antiChaseX :: Pos -> Pos -> Pos
+antiChaseX thePos bactPos =
+  case compare (thePos ^._x) (bactPos ^._x) of
+    LT -> thePos & _x %~ (\x -> (x + 1) `mod` width)
+    GT -> thePos & _x %~ (\x -> (x - 1) `mod` width)
+    EQ -> thePos -- Glucose has reached the bacteria
+
+antiChaseY :: Pos -> Pos -> Pos
+antiChaseY thePos bactPos =
+    thePos & _y %~ (\x -> (x - 1) `mod` height)
+
