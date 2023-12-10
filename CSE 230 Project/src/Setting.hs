@@ -136,29 +136,32 @@ eventHandler (AppEvent Event) = do
                                     -- food %= over _x (\x -> (x + randomX) `mod` width)
                                     -- food %= over _y (\x -> (x + randomY) `mod` height)
                                     the_score <- use score
-                                    if (the_score `mod` 2 == 0)
-                                        then do
+                                    when (the_score `mod` 10 == 0) $ do
+                                            oldEnemies <- use enemies
+                                            let newEnemies = reviveEnemy oldEnemies
+                                            enemies .= newEnemies
+                                    when (the_score `mod` 2 == 0) $ do
                                           oldEnemies <- use enemies
                                           newEnemies <- liftIO $ updateEnemyPos bactPosition oldEnemies
-                                          let newEnemies' = updateEnemiesLife newEnemies
+                                          newEnemies' <- liftIO $ updateEnemiesLife newEnemies
                                           enemies .= newEnemies'
 
                                           oldGlucoses <- use glucoses
                                           newGlucoses <- liftIO $ updateGlucosePos bactPosition oldGlucoses
                                           glucoses .= newGlucoses
 
-                                    else do
+                        
                                           -- randomX <- liftIO $ randomRIO (-1, 1)
                                           -- randomY <- liftIO $ randomRIO (-1, 1)
                                           -- food %= over _x (\x -> (x + randomX) `mod` width)
                                           -- food %= over _y (\x -> (x + randomY) `mod` height)
-                                          bact .= bactPosition
+                                        
 
                                     cur_level <- use level
                                     when (cur_level > 1 && the_score > 0 && the_score `mod` 100 == 0) $ do
                                       let num = the_score `div` 100
                                       oldEnemies <- use enemies
-                                      enemies_list <- liftIO $ addEnemy (cur_level * num * 3) oldEnemies -- update the new enemies list
+                                      enemies_list <- liftIO $ addEnemy ((cur_level-1) * 3) oldEnemies -- update the new enemies list
                                       enemies .= enemies_list
 
                                     cur_glucoses <- use glucoses
@@ -199,6 +202,21 @@ eventHandler (VtyEvent (V.EvKey V.KRight [])) = do
                                                           then (x + 1)
                                                           else x
                                                       )
+                                                  bactPosition <- use bact
+                                                  enemies' <- use enemies
+                                                  cur_life <- use life
+                                                  let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
+                                                  enemies .= newEnemyList
+                                                  when (catch_by_enemy) $ do
+                                                    life .= (cur_life - 1)
+                                                  cur_glucoses <- use glucoses
+                                                  when (isGlucoseAtPos bactPosition cur_glucoses) $ do
+                                                      cur_life <- use life
+                                                      life .= (cur_life + 1)
+                                                      (cur_g :| next_g) <- use future_glucoses
+                                                      future_glucoses .= next_g
+                                                      glucoses .= [Glucose (cur_g)]
+
 eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do      
                                                   ifEnd <- use end
                                                   ifWin <- use win
@@ -210,6 +228,20 @@ eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do
                                                         if x - 1 > -1
                                                           then (x - 1)
                                                           else x)
+                                                  bactPosition <- use bact
+                                                  enemies' <- use enemies
+                                                  cur_life <- use life
+                                                  let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
+                                                  enemies .= newEnemyList
+                                                  when (catch_by_enemy) $ do
+                                                    life .= (cur_life - 1)
+                                                  cur_glucoses <- use glucoses
+                                                  when (isGlucoseAtPos bactPosition cur_glucoses) $ do
+                                                      cur_life <- use life
+                                                      life .= (cur_life + 1)
+                                                      (cur_g :| next_g) <- use future_glucoses
+                                                      future_glucoses .= next_g
+                                                      glucoses .= [Glucose (cur_g)]
 eventHandler (VtyEvent (V.EvKey V.KUp [])) = do
                                                 ifEnd <- use end
                                                 ifWin <- use win
@@ -222,6 +254,20 @@ eventHandler (VtyEvent (V.EvKey V.KUp [])) = do
                                                           then (x + 1)
                                                           else x
                                                       )
+                                                  bactPosition <- use bact
+                                                  enemies' <- use enemies
+                                                  cur_life <- use life
+                                                  let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
+                                                  enemies .= newEnemyList
+                                                  when (catch_by_enemy) $ do
+                                                    life .= (cur_life - 1)
+                                                  cur_glucoses <- use glucoses
+                                                  when (isGlucoseAtPos bactPosition cur_glucoses) $ do
+                                                      cur_life <- use life
+                                                      life .= (cur_life + 1)
+                                                      (cur_g :| next_g) <- use future_glucoses
+                                                      future_glucoses .= next_g
+                                                      glucoses .= [Glucose (cur_g)]
 eventHandler (VtyEvent (V.EvKey V.KDown [])) = do
                                                   ifEnd <- use end
                                                   ifWin <- use win
@@ -233,6 +279,20 @@ eventHandler (VtyEvent (V.EvKey V.KDown [])) = do
                                                         if x - 1 > -1
                                                           then (x - 1)
                                                           else x)
+                                                  bactPosition <- use bact
+                                                  enemies' <- use enemies
+                                                  cur_life <- use life
+                                                  let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
+                                                  enemies .= newEnemyList
+                                                  when (catch_by_enemy) $ do
+                                                    life .= (cur_life - 1)
+                                                  cur_glucoses <- use glucoses
+                                                  when (isGlucoseAtPos bactPosition cur_glucoses) $ do
+                                                      cur_life <- use life
+                                                      life .= (cur_life + 1)
+                                                      (cur_g :| next_g) <- use future_glucoses
+                                                      future_glucoses .= next_g
+                                                      glucoses .= [Glucose (cur_g)]
 
 eventHandler (VtyEvent (V.EvKey (V.KChar 'r') [])) = do 
                                                   bact .= (V2 10 10)
@@ -317,16 +377,27 @@ updateEnemyChasePlayer playerPos enemy =
           return $ enemy {_enPos = newPos}
     else return enemy
 
-updateEnemiesLife :: [Enemy] -> [Enemy]
+updateEnemiesLife :: [Enemy] -> IO [Enemy]
 updateEnemiesLife enemies = 
-    map (\enemy -> updateEnemyLife enemy) enemies
+    mapM (\enemy -> updateEnemyLife enemy) enemies
 
 
-updateEnemyLife :: Enemy -> Enemy
-updateEnemyLife e = case e of
-  Enemy _ _ False -> e
-  Enemy p 0 True -> Enemy p 0 False
-  Enemy p n True -> Enemy p (n-1) True 
+updateEnemyLife :: Enemy -> IO Enemy
+updateEnemyLife e = 
+  case e of
+    Enemy _ _ False -> return e
+    Enemy p 0 True -> do 
+                        x <- randomRIO (1, width) :: IO Int
+                        y <- randomRIO (1, 2) :: IO Int
+                        let result = if y == 1 then height else 0
+                        return (Enemy (V2 x y) 0 False)
+    Enemy p n True -> return (Enemy p (n-1) True)
+
+reviveEnemy :: [Enemy] -> [Enemy]
+reviveEnemy [] = []
+reviveEnemy (x:xs) = case x of
+  Enemy _ _ True -> x:(reviveEnemy xs)
+  Enemy p _ False -> (Enemy p enemLife True):xs
 
 
 isGlucoseAtPos :: Pos -> [Glucose] -> Bool
@@ -373,12 +444,11 @@ isEnemyHitBact pos enemies =
 addEnemy :: Int -> [Enemy] -> IO [Enemy]
 addEnemy 1 cur= do
   x <- randomRIO (1, width) :: IO Int
-  y <- randomRIO (1, width) :: IO Int
-  let enem = Enemy (V2 x y) enemLife True
+  let enem = Enemy (V2 x height) enemLife True
   return (enem:cur)
 addEnemy n cur= do
   x <- randomRIO (1, width) :: IO Int
-  y <- randomRIO (1, width) :: IO Int
+  let y = if (n `mod` 2) == 0 then 0 else height
   let enem = Enemy (V2 x y) enemLife True
   enemies_list <- liftIO $ addEnemy (n-1) (enem:cur)
   return enemies_list
