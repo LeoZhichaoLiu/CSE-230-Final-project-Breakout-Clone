@@ -15,7 +15,7 @@ import Control.Monad.Trans.State
 import Data.Sequence (Seq(..), (<|))
 import qualified Data.Sequence as S
 import Linear.V2 (V2(..), _x, _y)
-import System.Random (Random(..), newStdGen)
+import System.Random (Random(..), newStdGen, randomRIO)
 
 
 data GameState = GameState
@@ -30,17 +30,17 @@ data GameState = GameState
 
 data Enemy = Enemy
   { _enPos :: Pos,
-    _enSpeed :: Int,
+    _enLife :: Int,
     _enAlive :: Bool
   } deriving (Show)
-height, width :: Int
+height, width, enemLife :: Int
 height = 40
 width = 40
+enemLife = 50
 
 data Glucose = Glucose
   { _gluPos :: Pos
   } deriving (Show)
-
 
 
 -- Position for each element
@@ -69,8 +69,9 @@ makeLenses ''GameState
 initState :: IO GameState
 initState = do
   -- 随机生成所有食物的地方
-  --(f :| fs) <-
-  --fromList . randomRs (V2 0 0, V2 (width - 1) (height - 1)) <$> newStdGen
+  (f :| fs) <-
+    fromList . randomRs (V2 0 0, V2 (width - 1) (height - 1)) <$> newStdGen
+  enemList <- initEnemy 10  
   let xm = width `div` 2
       ym = height `div` 2
       -- 生成state的初始状态
@@ -78,7 +79,7 @@ initState = do
         { _bact  = (V2 xm ym)
         , _glucoses   = [(Glucose (V2 5 15)), (Glucose (V2 6 25))]
         , _end    = False
-        , _enemies = [(Enemy (V2 3 3) 1 True), (Enemy (V2 20 10) 1 True)]
+        , _enemies = enemList
         , _score  = 0
         , _dir    = East
         }
@@ -86,6 +87,14 @@ initState = do
   --return $ executeState nextFood state
   return $ state
 
+initEnemy :: Int -> IO [Enemy]
+initEnemy 0 = return []
+initEnemy n = do
+  x <- randomRIO (1, width) :: IO Int
+  y <- randomRIO (1, width) :: IO Int
+  let enem = Enemy (V2 x y) enemLife True
+  l <- initEnemy (n-1)
+  return (enem:l)
 
 fromList :: [a] -> List a
 fromList = foldr (:|) (error "Streams must be infinite")
