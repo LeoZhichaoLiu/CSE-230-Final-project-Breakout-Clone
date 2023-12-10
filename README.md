@@ -66,3 +66,10 @@ It might not be expected to meet all our goals before the deadline.
 ## If not, how will you modify your goals?
 
 To complete the games, we should at least complete the arena setting and game initialization to start a basic game model. For the more advanced game mechanism such as leveling up and random NPC movement would be put into a lower priority to accomplish before the deadline. Currently we are working on the general UI and try to finish the basic logic of game controlling. 
+
+
+
+
+遇到过的问题：
+1. 无敌帧解决：原本在每个tick进行一个判定，但是导致了可能会在判定之间穿过去，所以就在每次移动的时候都加了对敌人和糖的判定。
+2. 
