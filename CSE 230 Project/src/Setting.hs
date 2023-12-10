@@ -29,6 +29,7 @@ import Data.Sequence (Seq)
 import qualified Data.Sequence as S
 import Linear.V2 (V2(..), _x, _y)
 import System.Random (randomRIO)
+import Data.List
 
 data Event = Event 
 
