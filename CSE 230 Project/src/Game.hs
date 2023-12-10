@@ -21,10 +21,14 @@ import System.Random (Random(..), newStdGen, randomRIO)
 data GameState = GameState
   { _bact  :: Pos        -- Bacteria Position
   , _dir    :: Direction    -- Current Bacteria Position (to determine what it should go)
+  , _life  :: Int   
   , _glucoses   :: [Glucose]       -- Glucose Position
+  , _future_glucoses :: List Pos
   , _enemies  :: [Enemy]  -- List of next Food Positio
+  , _win :: Bool        -- Whether you reach the 1000 pts
   , _end   :: Bool      -- Whether Game is Over
   , _score  :: Int       -- The Current Score
+  , _level :: Int    -- The Game Level
   } deriving (Show)
 
 
@@ -36,7 +40,7 @@ data Enemy = Enemy
 height, width, enemLife :: Int
 height = 40
 width = 40
-enemLife = 50
+enemLife = 10000
 
 data Glucose = Glucose
   { _gluPos :: Pos
@@ -57,13 +61,7 @@ data List a = a :| List a
   deriving (Show)
 
 makeLenses ''GameState
-
--- Update the next Food position if the bacteria doesn't eat it, and also update the remaining foods list
--- nextFood :: State GameState ()
--- nextFood = do
---   (f :| fs) <- use foods
---   foods .= fs
---   return ()
+   
 
 --  Initialize the game information
 initState :: IO GameState
@@ -77,14 +75,19 @@ initState = do
       -- 生成state的初始状态
       state  = GameState
         { _bact  = (V2 xm ym)
-        , _glucoses   = [(Glucose (V2 5 15)), (Glucose (V2 6 25))]
+        , _life = 1
+        --, _glucoses   = [(Glucose (V2 5 15)), (Glucose (V2 6 25))]
+        , _glucoses = [Glucose (f)]
+        , _future_glucoses = fs
+        , _win = False
         , _end    = False
         , _enemies = enemList
         , _score  = 0
         , _dir    = East
+        , _level   = 1
         }
   -- Use Monad to input the current state to nextFood Monad Function (continue update state)
-  --return $ executeState nextFood state
+  --return $ execState nextFood state
   return $ state
 
 initEnemy :: Int -> IO [Enemy]

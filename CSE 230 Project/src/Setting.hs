@@ -60,8 +60,29 @@ main = do
 
 -- Function to draw the UI of the game, composed of Socre part + board part
 drawApp :: GameState -> [Widget Name]
-drawApp state = 
-  [ C.center $ padRight (Pad 3) (drawScore state) <+> drawBoard state ]
+drawApp state = [ C.center $ padRight (Pad 3) (vBox[(drawLife state), (drawScore state)]) 
+                  <+> drawBoard state <+>  padRight (Pad 3) (vBox[(drawDead state), (drawWin state)]) ]
+
+
+-- Dead Part
+drawDead :: GameState -> Widget Name
+drawDead state = 
+  if (state ^. end) then 
+    withBorderStyle BS.unicodeBold
+    $ B.borderWithLabel (str "Unfortunately")
+    $ padAll 3
+    $ str "You Are Dead!\nClick R to Restart"
+  else emptyWidget
+
+-- Win Part
+drawWin :: GameState -> Widget Name
+drawWin state = 
+  if (state ^. win) then 
+    withBorderStyle BS.unicodeBold
+    $ B.borderWithLabel (str "Congratulation!")
+    $ padAll 2
+    $ (str "You Reach 500 Score!\nClick G to Next Level")
+  else emptyWidget
 
 -- Score Part
 drawScore :: GameState -> Widget Name
@@ -71,10 +92,20 @@ drawScore state = withBorderStyle BS.unicodeBold
   -- Update the score everytime according to the game state
   $ str $ (show (state ^. score))
 
+-- Life Part
+drawLife :: GameState -> Widget Name
+drawLife state = withBorderStyle BS.unicodeBold
+  $ B.borderWithLabel (str "Life")
+  $ padAll 2
+  -- Update the life everytime according to the game state
+  $ str $ (show (state ^. life))
+
+
 -- Board Part 
 drawBoard :: GameState -> Widget Name
 drawBoard state = withBorderStyle BS.unicodeBold
-  -- Use vBox + hBox to create board with 20x20 cells
+  $ B.borderWithLabel (str $ ("  Level  " ++ show (state ^. level) ++ "  ")) 
+  -- Use vBox + hBox to create board with 40x40 cells
   $ vBox [hBox $ createCellList a | a <- [height-1,height-2..0]]
   where 
     createCellList y = [ createCell (V2 x y) | x <- [0..width-1]]
@@ -84,62 +115,120 @@ drawBoard state = withBorderStyle BS.unicodeBold
                      else if isEnemyAtPos pos (state ^. enemies) then withAttr (attrName "enemyAttr") (str "  ")
                      else  withAttr (attrName "spaceAttr") (str "  ")
 
---cw :: Widget Name
---cw = str "  "
 
 
 -- Function to define the event handler
 eventHandler :: BrickEvent Name Event -> EventM Name GameState()
 eventHandler (AppEvent Event) = do
-                                  endStatus <- use end
-                                  
-                                  if endStatus
-                                    then halt
+                                  ifEnd <- use end
+                                  ifWin <- use win
+
+                                  if (ifEnd || ifWin) 
+                                    then return ()
+                                  else do
+                                    bactPosition <- use bact
+                                    --foodPosition <- use food
+                                    --randomX <- liftIO $ randomRIO (-1, 1)
+                                    --randomY <- liftIO $ randomRIO (-1, 1)
+                                    -- --
+                                    -- food %= over _x (\x -> (x + randomX) `mod` width)
+                                    -- food %= over _y (\x -> (x + randomY) `mod` height)
+                                    the_score <- use score
+                                    if (the_score `mod` 2 == 0)
+                                        then do
+                                          oldEnemies <- use enemies
+                                          newEnemies <- liftIO $ updateEnemyPos bactPosition oldEnemies
+                                          let newEnemies' = updateEnemiesLife newEnemies
+                                          enemies .= newEnemies'
+
+                                          oldGlucoses <- use glucoses
+                                          newGlucoses <- liftIO $ updateGlucosePos bactPosition oldGlucoses
+                                          glucoses .= newGlucoses
+
                                     else do
-                                          bactPosition <- use bact
-                                          --foodPosition <- use food
-                                          --randomX <- liftIO $ randomRIO (-1, 1)
-                                          --randomY <- liftIO $ randomRIO (-1, 1)
-                                          -- --
+                                          -- randomX <- liftIO $ randomRIO (-1, 1)
+                                          -- randomY <- liftIO $ randomRIO (-1, 1)
                                           -- food %= over _x (\x -> (x + randomX) `mod` width)
                                           -- food %= over _y (\x -> (x + randomY) `mod` height)
-                                          the_score <- use score
-                                          if (the_score `mod` 2 == 0)
-                                            then do  
-                                              oldEnemies <- use enemies
-                                              newEnemies <- liftIO $ updateEnemyPos bactPosition oldEnemies
-                                              let newEnemies' = updateEnemiesLife newEnemies
-                                              enemies .= newEnemies'
+                                          bact .= bactPosition
 
-                                              oldGlucoses <- use glucoses
-                                              newGlucoses <- liftIO $ updateGlucosePos bactPosition oldGlucoses
-                                              glucoses .= newGlucoses
+                                    cur_level <- use level
+                                    when (cur_level == 2 && the_score > 0 && the_score `mod` 100 == 0) $ do
+                                      let num = the_score `div` 100
+                                      enemies_list <- liftIO $ initEnemy (10 + num * 3)
+                                      enemies .= enemies_list
 
-                                            else do
-                                              -- randomX <- liftIO $ randomRIO (-1, 1)
-                                              -- randomY <- liftIO $ randomRIO (-1, 1)
-                                              -- food %= over _x (\x -> (x + randomX) `mod` width)
-                                              -- food %= over _y (\x -> (x + randomY) `mod` height)
-                                              bact .= bactPosition
-                                          enemies' <- use enemies
-                                          let dead = isEnemyAtPos bactPosition enemies'
-                                          when dead $ do
-                                            end .= True
-                                          
-                                          when (not endStatus) $ do
-                                            score %= (+1)
+                                    cur_glucoses <- use glucoses
+                                    when (isGlucoseAtPos bactPosition cur_glucoses) $ do
+                                        cur_life <- use life
+                                        life .= (cur_life + 1)
+                                        (cur_g :| next_g) <- use future_glucoses
+                                        future_glucoses .= next_g
+                                        glucoses .= [Glucose (cur_g)]
+
+                                    enemies' <- use enemies
+                                    cur_life <- use life
+                                    let catch_by_enemy = (isEnemyAtPos bactPosition enemies') 
+                                    when (catch_by_enemy) $ do
+                                      life .= (cur_life - 1)
+
+                                    cur_life <- use life
+                                    let dead = (cur_life <= 0)
+
+                                    if dead then do
+                                      end .= True
+                                    else if (the_score == 500) then do
+                                      win .= True
+                                    else do 
+                                      score %= (+1) 
+                                   
+
 eventHandler (VtyEvent (V.EvKey V.KRight [])) = do 
-                                                  dir .= East
-                                                  bact %= over _x (\x -> (x + 1) `mod` width)
+                                                  ifEnd <- use end
+                                                  ifWin <- use win
+                                                  if (ifEnd || ifWin) 
+                                                    then return ()
+                                                  else do
+                                                    dir .= East
+                                                    bact %= over _x (\x -> (x + 1) `mod` width)
 eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do      
-                                                  dir .= West   
-                                                  bact %= over _x (\x -> (x - 1) `mod` width)
+                                                  ifEnd <- use end
+                                                  ifWin <- use win
+                                                  if (ifEnd || ifWin) 
+                                                    then return ()
+                                                  else do
+                                                    dir .= West   
+                                                    bact %= over _x (\x -> (x - 1) `mod` width)
 eventHandler (VtyEvent (V.EvKey V.KUp [])) = do
-                                                dir .= North
-                                                bact %= over _y (\x -> (x + 1) `mod` height)
+                                                ifEnd <- use end
+                                                ifWin <- use win
+                                                if (ifEnd || ifWin) 
+                                                  then return ()
+                                                else do
+                                                  dir .= North
+                                                  bact %= over _y (\x -> (x + 1) `mod` height)
 eventHandler (VtyEvent (V.EvKey V.KDown [])) = do
-                                                  dir .= South
-                                                  bact %= over _y (\x -> (x - 1) `mod` height)
+                                                  ifEnd <- use end
+                                                  ifWin <- use win
+                                                  if (ifEnd || ifWin) 
+                                                    then return ()
+                                                  else do
+                                                    dir .= South
+                                                    bact %= over _y (\x -> (x - 1) `mod` height)
+
+eventHandler (VtyEvent (V.EvKey (V.KChar 'r') [])) = do 
+                                                  bact .= (V2 10 10)
+                                                  life .= 1
+                                                  win .= False
+                                                  end .= False
+                                                  score .= 0
+eventHandler (VtyEvent (V.EvKey (V.KChar 'g') [])) = do 
+                                                  bact .= (V2 10 10)
+                                                  win .= False
+                                                  end .= False
+                                                  score .= 0   
+                                                  cur_level <- use level
+                                                  level .= (cur_level + 1)               
 -- Put Esc to quit the game
 eventHandler (VtyEvent (V.EvKey V.KEsc []))        = halt
 eventHandler _                                     = return ()
@@ -164,6 +253,7 @@ theMap = attrMap V.defAttr
 --       LT -> foodPos & _y %~ (\y -> (y + 1) `mod` height)
 --       GT -> foodPos & _y %~ (\y -> (y - 1) `mod` height)
 --       EQ -> foodPos -- Food has reached the bacteria
+
 
 chaseX :: Pos -> Pos -> Pos
 chaseX thePos bactPos =
