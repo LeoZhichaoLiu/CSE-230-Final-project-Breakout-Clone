@@ -193,7 +193,11 @@ eventHandler (VtyEvent (V.EvKey V.KRight [])) = do
                                                     then return ()
                                                   else do
                                                     dir .= East
-                                                    bact %= over _x (\x -> (x + 1) `mod` width)
+                                                    bact %= over _x (\x ->
+                                                        if x + 1 < width
+                                                          then (x + 1)
+                                                          else x
+                                                      )
 eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do      
                                                   ifEnd <- use end
                                                   ifWin <- use win
@@ -201,7 +205,10 @@ eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do
                                                     then return ()
                                                   else do
                                                     dir .= West   
-                                                    bact %= over _x (\x -> (x - 1) `mod` width)
+                                                    bact %= over _x (\x ->
+                                                        if x - 1 > -1
+                                                          then (x - 1)
+                                                          else x)
 eventHandler (VtyEvent (V.EvKey V.KUp [])) = do
                                                 ifEnd <- use end
                                                 ifWin <- use win
@@ -209,7 +216,11 @@ eventHandler (VtyEvent (V.EvKey V.KUp [])) = do
                                                   then return ()
                                                 else do
                                                   dir .= North
-                                                  bact %= over _y (\x -> (x + 1) `mod` height)
+                                                  bact %= over _y (\x ->
+                                                        if x + 1 < height
+                                                          then (x + 1)
+                                                          else x
+                                                      )
 eventHandler (VtyEvent (V.EvKey V.KDown [])) = do
                                                   ifEnd <- use end
                                                   ifWin <- use win
@@ -217,7 +228,10 @@ eventHandler (VtyEvent (V.EvKey V.KDown [])) = do
                                                     then return ()
                                                   else do
                                                     dir .= South
-                                                    bact %= over _y (\x -> (x - 1) `mod` height)
+                                                    bact %= over _y (\x ->
+                                                        if x - 1 > -1
+                                                          then (x - 1)
+                                                          else x)
 
 eventHandler (VtyEvent (V.EvKey (V.KChar 'r') [])) = do 
                                                   bact .= (V2 10 10)
@@ -228,7 +242,7 @@ eventHandler (VtyEvent (V.EvKey (V.KChar 'r') [])) = do
                                                   enemies_list <- liftIO $ initEnemy (10)
                                                   enemies .= enemies_list
                                                   level .= 1
-                                                  
+
 eventHandler (VtyEvent (V.EvKey (V.KChar 'g') [])) = do 
                                                   bact .= (V2 10 10)
                                                   win .= False
