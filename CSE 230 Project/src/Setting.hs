@@ -110,10 +110,11 @@ drawBoard state = withBorderStyle BS.unicodeBold
   where 
     createCellList y = [ createCell (V2 x y) | x <- [0..width-1]]
     -- Draw each cell with different color according to its attributes (bact, food, space etc)
-    createCell pos = if pos == (state ^. bact) then withAttr (attrName "bactAttr") (str "  ")
-                     else if isGlucoseAtPos pos (state ^. glucoses) then withAttr (attrName "glucAttr") (str "  ")
-                     else if isEnemyAtPos pos (state ^. enemies) then withAttr (attrName "enemyAttr") (str "  ")
+    createCell pos = if pos == (state ^. bact) then withAttr (attrName "bactAttr") (str "🦠")
+                     else if isGlucoseAtPos pos (state ^. glucoses) then withAttr (attrName "glucAttr") (str "🍬")
+                     else if isEnemyAtPos pos (state ^. enemies) then withAttr (attrName "enemyAttr") (str "👾")
                      else  withAttr (attrName "spaceAttr") (str "  ")
+
 
 
 
@@ -234,14 +235,16 @@ eventHandler (VtyEvent (V.EvKey V.KEsc []))        = halt
 eventHandler _                                     = return ()
 
 
--- Define the Attribute Map
+
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-    [   (attrName "bactAttr", V.red `on` V.red),  -- Bacterial is Red
-        (attrName "glucAttr", V.green `on` V.green),  -- Food is Green
+    [   (attrName "bactAttr", V.white `on` V.white),  
+        (attrName "glucAttr", V.white `on` V.white),  
         (attrName "spaceAttr", V.white `on` V.white),  -- Board is White
-        (attrName "enemyAttr", V.black `on` V.black)
+        (attrName "enemyAttr", V.white `on` V.white) 
     ]
+
+
 
 -- Original
 -- chase :: Pos -> Pos -> Pos
