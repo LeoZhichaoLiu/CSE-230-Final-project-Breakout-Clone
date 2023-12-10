@@ -157,7 +157,8 @@ eventHandler (AppEvent Event) = do
                                     cur_level <- use level
                                     when (cur_level > 1 && the_score > 0 && the_score `mod` 100 == 0) $ do
                                       let num = the_score `div` 100
-                                      enemies_list <- liftIO $ initEnemy (10 + cur_level * num * 3)
+                                      oldEnemies <- use enemies
+                                      enemies_list <- liftIO $ addEnemy (cur_level * num * 3) oldEnemies -- update the new enemies list
                                       enemies .= enemies_list
 
                                     cur_glucoses <- use glucoses
@@ -368,3 +369,16 @@ isEnemyHitBact pos enemies =
       hit = not (null hitEnemies)
       updatedEnemies = map (\enemy -> if _enPos enemy == pos then enemy { _enAlive = False } else enemy) remainingEnemies
   in (updatedEnemies, hit)
+
+addEnemy :: Int -> [Enemy] -> IO [Enemy]
+addEnemy 1 cur= do
+  x <- randomRIO (1, width) :: IO Int
+  y <- randomRIO (1, width) :: IO Int
+  let enem = Enemy (V2 x y) enemLife True
+  return (enem:cur)
+addEnemy n cur= do
+  x <- randomRIO (1, width) :: IO Int
+  y <- randomRIO (1, width) :: IO Int
+  let enem = Enemy (V2 x y) enemLife True
+  enemies_list <- liftIO $ addEnemy (n-1) (enem:cur)
+  return enemies_list
