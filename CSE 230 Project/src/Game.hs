@@ -40,7 +40,7 @@ data Enemy = Enemy
 height, width, enemLife :: Int
 height = 40
 width = 40
-enemLife = 10000
+enemLife = 100
 
 data Glucose = Glucose
   { _gluPos :: Pos
@@ -91,11 +91,14 @@ initState = do
   return $ state
 
 initEnemy :: Int -> IO [Enemy]
-initEnemy 0 = return []
+initEnemy 1 = do
+  x <- randomRIO (1, width) :: IO Int
+  let enem = Enemy (V2 x height) enemLife True
+  return [enem]
 initEnemy n = do
   x <- randomRIO (1, width) :: IO Int
-  y <- randomRIO (1, width) :: IO Int
-  let enem = Enemy (V2 x y) enemLife True
+  let y = if (n `mod` 2) == 0 then 0 else height
+  let enem = Enemy (V2 x y) enemLife False
   l <- initEnemy (n-1)
   return (enem:l)
 
