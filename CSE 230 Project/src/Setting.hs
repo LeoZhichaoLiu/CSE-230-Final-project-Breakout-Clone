@@ -92,6 +92,7 @@ drawBoard state = withBorderStyle BS.unicodeBold
 eventHandler :: BrickEvent Name Event -> EventM Name GameState()
 eventHandler (AppEvent Event) = do
                                   endStatus <- use end
+                                  
                                   if endStatus
                                     then halt
                                     else do
@@ -104,22 +105,25 @@ eventHandler (AppEvent Event) = do
                                           -- food %= over _y (\x -> (x + randomY) `mod` height)
                                           the_score <- use score
                                           if (the_score `mod` 2 == 0)
-                                            then do
+                                            then do  
                                               oldEnemies <- use enemies
                                               newEnemies <- liftIO $ updateEnemyPos bactPosition oldEnemies
-                                              enemies .= newEnemies
-                                              
+                                              let newEnemies' = updateEnemiesLife newEnemies
+                                              enemies .= newEnemies'
+
                                               oldGlucoses <- use glucoses
                                               newGlucoses <- liftIO $ updateGlucosePos bactPosition oldGlucoses
                                               glucoses .= newGlucoses
+
                                             else do
                                               -- randomX <- liftIO $ randomRIO (-1, 1)
                                               -- randomY <- liftIO $ randomRIO (-1, 1)
                                               -- food %= over _x (\x -> (x + randomX) `mod` width)
                                               -- food %= over _y (\x -> (x + randomY) `mod` height)
                                               bact .= bactPosition
-                                          let shouldIncreaseScore = (bactPosition /= bactPosition)
-                                          when shouldIncreaseScore $ do
+                                          enemies' <- use enemies
+                                          let dead = isEnemyAtPos bactPosition enemies'
+                                          when dead $ do
                                             end .= True
                                           
                                           when (not endStatus) $ do
@@ -145,11 +149,21 @@ eventHandler _                                     = return ()
 theMap :: AttrMap
 theMap = attrMap V.defAttr
     [   (attrName "bactAttr", V.red `on` V.red),  -- Bacterial is Red
-        (attrName "glucAttr", V.green `on` V.green),  -- Glucose is Green
+        (attrName "glucAttr", V.green `on` V.green),  -- Food is Green
         (attrName "spaceAttr", V.white `on` V.white),  -- Board is White
-        (attrName "enemyAttr", V.black `on` V.black) -- Enemy is black
+        (attrName "enemyAttr", V.black `on` V.black)
     ]
 
+-- Original
+-- chase :: Pos -> Pos -> Pos
+-- chase foodPos bactPos =
+--   case compare (foodPos ^._x) (bactPos ^._x) of
+--     LT -> foodPos & _x %~ (\x -> (x + 1) `mod` width)
+--     GT -> foodPos & _x %~ (\x -> (x - 1) `mod` width)
+--     EQ -> case compare (foodPos ^._y) (bactPos ^._y) of
+--       LT -> foodPos & _y %~ (\y -> (y + 1) `mod` height)
+--       GT -> foodPos & _y %~ (\y -> (y - 1) `mod` height)
+--       EQ -> foodPos -- Food has reached the bacteria
 
 chaseX :: Pos -> Pos -> Pos
 chaseX thePos bactPos =
@@ -186,6 +200,18 @@ updateEnemyChasePlayer playerPos enemy =
           return $ enemy {_enPos = newPos}
     else return enemy
 
+updateEnemiesLife :: [Enemy] -> [Enemy]
+updateEnemiesLife enemies = 
+    map (\enemy -> updateEnemyLife enemy) enemies
+
+
+updateEnemyLife :: Enemy -> Enemy
+updateEnemyLife e = case e of
+  Enemy _ _ False -> e
+  Enemy p 0 True -> Enemy p 0 False
+  Enemy p n True -> Enemy p (n-1) True 
+
+
 isGlucoseAtPos :: Pos -> [Glucose] -> Bool
 isGlucoseAtPos pos glucoses = any (\g -> _gluPos g == pos) glucoses
 
@@ -214,4 +240,3 @@ antiChaseX thePos bactPos =
 antiChaseY :: Pos -> Pos -> Pos
 antiChaseY thePos bactPos =
     thePos & _y %~ (\x -> (x - 1) `mod` height)
-
