@@ -31,12 +31,30 @@ data GameState = GameState
   , _end   :: Bool      -- Whether Game is Over
   , _score  :: Int       -- The Current Score
   , _level :: Int    -- The Game Level
+  , _boss :: [Boss]
   } deriving (Show)
 
 data Bullet = Bullet
   { _bulletPos :: Pos,
-    _bulletDir :: Direction
+    _bulletDir :: Direction,
+    _friendly :: Bool
   } deriving (Show)
+
+data Boss = Boss
+  { _bossPos :: Pos,
+    _bossForm :: Bool,
+    _bossBody1 :: [Pos],
+    _bossBody2 :: [Pos],
+    _bossLife :: Int,
+    _bossTarget :: Pos,
+    _bossSleep :: Int
+  } deriving (Show)
+
+generateBoss :: Pos -> Boss
+generateBoss (V2 x y) = Boss (V2 x y) False b1 b2 bossLife (V2 x y) bossSleepTime
+  where 
+    b1 = [(V2 (x+1) y), (V2 (x-1) y), (V2 x (y+1)), (V2 x (y-1))]
+    b2 = [(V2 (x+1) (y+1)), (V2 (x-1) (y+1)), (V2 (x+1) (y-1)), (V2 (x-1) (y-1))]
 
 data Enemy = Enemy
   { _enPos :: Pos,
@@ -44,11 +62,13 @@ data Enemy = Enemy
     _enAlive :: Bool,
     _corpsTime :: Int
   } deriving (Show)
-height, width, enemLife, corpTime :: Int
+height, width, enemLife, corpTime, bossLife :: Int
 height = 40
 width = 50
 enemLife = 80
 corpTime = 20
+bossLife = 5
+bossSleepTime = 11
 
 data Glucose = Glucose
   { _gluPos :: Pos
@@ -99,6 +119,7 @@ initState = do
         , _score  = 0
         , _dir    = E
         , _level   = 1
+        , _boss = [generateBoss (V2 40 40)]
         }
   -- Use Monad to input the current state to nextFood Monad Function (continue update state)
   --return $ execState nextFood state
