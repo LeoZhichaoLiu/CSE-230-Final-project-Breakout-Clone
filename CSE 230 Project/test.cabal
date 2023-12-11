@@ -5,7 +5,7 @@ cabal-version:       >=1.10
 custom-setup
   setup-depends: base, Cabal
 
-executable test
+executable testGame
   hs-source-dirs:      src
   other-modules:       UI
                      , Game
@@ -47,4 +47,3 @@ test-suite test
                      , HUnit
 
   default-language:    Haskell2010
-
