@@ -123,8 +123,15 @@ drawBoard state = withBorderStyle (BS.borderStyleFromChar ' ')
     createCellList y = [ createCell (V2 x y) | x <- [0..width-1]]
     -- Draw each cell with different color according to its attributes (bact, food, space etc)
     createCell pos = if pos == (state ^. bact) then withAttr (attrName "bactAttr") (str "🦠")
-                     else if isGlucoseAtPos pos (state ^. glucoses) then withAttr (attrName "glucAttr") (str "🍬")
+                     else if isBulletAtPoshostile pos (state ^. bullet) then withAttr (attrName "enemyAttr") (str "🔴")
                      else if isEnemyAtPos pos (state ^. enemies) then withAttr (attrName "enemyAttr") (str "👾")
+                     else if isBulletAtPosFriendly pos (state ^. bullet) then withAttr (attrName "enemyAttr") (str "🔵")
+                     else if isGlucoseAtPos pos (state ^. glucoses) then withAttr (attrName "glucAttr") (str "🍬")
+                     else if isBossCoreAtPos pos (state ^. boss) then withAttr (attrName "enemyAttr") (str "👁️ ")
+                     else if isBossBody1AtPos_form1 pos (state ^. boss) then withAttr (attrName "enemyAttr") (str "🟥")
+                     else if isBossBody1AtPos_form2 pos (state ^. boss) then withAttr (attrName "enemyAttr") (str "🟪")
+                     else if isBossBody2AtPos_form1 pos (state ^. boss) then withAttr (attrName "enemyAttr") (str "🟪")
+                     else if isBossBody2AtPos_form2 pos (state ^. boss) then withAttr (attrName "enemyAttr") (str "🟥")
                      else if snd (isCorpAtPos pos (state ^. enemies)) then withAttr (attrName "enemyAttr") (str "⚰️")
                      else  withAttr (attrName "spaceAttr") (str "  ")
 
@@ -140,7 +147,17 @@ eventHandler (AppEvent Event) = do
                                   if (ifEnd || ifWin) 
                                     then return ()
                                   else do
+                                    bullets <- use bullet
+                                    bosses <- use boss
+                                    enemyAfterBullet <- use enemies
+                                    let newBullets = moveBullets bullets 
+                                    let newEnemyAfterBullet = bulletKillEnemy bullets enemyAfterBullet
+                                    enemies .= newEnemyAfterBullet
+                                    bullet .= newBullets
                                     bactPosition <- use bact
+                                    let palyerHitByBullet = bulletKillPlayer bactPosition bullets
+                                    let newBosses = moveBoss bactPosition bosses
+                                    boss .= newBosses
                                     --foodPosition <- use food
                                     --randomX <- liftIO $ randomRIO (-1, 1)
                                     --randomY <- liftIO $ randomRIO (-1, 1)
@@ -161,8 +178,8 @@ eventHandler (AppEvent Event) = do
                                           oldGlucoses <- use glucoses
                                           newGlucoses <- liftIO $ updateGlucosePos bactPosition oldGlucoses
                                           glucoses .= newGlucoses
-
-                        
+                                          let bossBullet = bossShoot bosses
+                                          bullet %= (++bossBullet)
                                           -- randomX <- liftIO $ randomRIO (-1, 1)
                                           -- randomY <- liftIO $ randomRIO (-1, 1)
                                           -- food %= over _x (\x -> (x + randomX) `mod` width)
@@ -188,7 +205,7 @@ eventHandler (AppEvent Event) = do
                                     cur_life <- use life
                                     let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
                                     enemies .= newEnemyList
-                                    when (catch_by_enemy) $ do
+                                    when (catch_by_enemy || palyerHitByBullet) $ do
                                       life .= (cur_life - 1)
 
                                     cur_life <- use life
@@ -216,10 +233,12 @@ eventHandler (VtyEvent (V.EvKey V.KRight [])) = do
                                                       )
                                                   bactPosition <- use bact
                                                   enemies' <- use enemies
+                                                  bullets <- use bullet
                                                   cur_life <- use life
-                                                  let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
+                                                  let (newEnemyList, catch_by_enemy) = isEnemyHitBact bactPosition enemies' 
+                                                  let palyerHitByBullet = bulletKillPlayer bactPosition bullets
                                                   enemies .= newEnemyList
-                                                  when (catch_by_enemy) $ do
+                                                  when (catch_by_enemy || palyerHitByBullet) $ do
                                                     life .= (cur_life - 1)
                                                   cur_glucoses <- use glucoses
                                                   when (isGlucoseAtPos bactPosition cur_glucoses) $ do
@@ -248,10 +267,12 @@ eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do
                                                           else x)
                                                   bactPosition <- use bact
                                                   enemies' <- use enemies
+                                                  bullets <- use bullet
                                                   cur_life <- use life
-                                                  let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
+                                                  let (newEnemyList, catch_by_enemy) = isEnemyHitBact bactPosition enemies' 
+                                                  let palyerHitByBullet = bulletKillPlayer bactPosition bullets
                                                   enemies .= newEnemyList
-                                                  when (catch_by_enemy) $ do
+                                                  when (catch_by_enemy || palyerHitByBullet) $ do
                                                     life .= (cur_life - 1)
                                                   cur_glucoses <- use glucoses
                                                   when (isGlucoseAtPos bactPosition cur_glucoses) $ do
@@ -278,10 +299,12 @@ eventHandler (VtyEvent (V.EvKey V.KUp [])) = do
                                                       )
                                                   bactPosition <- use bact
                                                   enemies' <- use enemies
+                                                  bullets <- use bullet
                                                   cur_life <- use life
-                                                  let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
+                                                  let (newEnemyList, catch_by_enemy) = isEnemyHitBact bactPosition enemies' 
+                                                  let palyerHitByBullet = bulletKillPlayer bactPosition bullets
                                                   enemies .= newEnemyList
-                                                  when (catch_by_enemy) $ do
+                                                  when (catch_by_enemy || palyerHitByBullet) $ do
                                                     life .= (cur_life - 1)
                                                   cur_glucoses <- use glucoses
                                                   when (isGlucoseAtPos bactPosition cur_glucoses) $ do
@@ -307,10 +330,12 @@ eventHandler (VtyEvent (V.EvKey V.KDown [])) = do
                                                           else x)
                                                   bactPosition <- use bact
                                                   enemies' <- use enemies
+                                                  bullets <- use bullet
                                                   cur_life <- use life
-                                                  let (newEnemyList, catch_by_enemy) = (isEnemyHitBact bactPosition enemies') 
+                                                  let (newEnemyList, catch_by_enemy) = isEnemyHitBact bactPosition enemies' 
+                                                  let palyerHitByBullet = bulletKillPlayer bactPosition bullets
                                                   enemies .= newEnemyList
-                                                  when (catch_by_enemy) $ do
+                                                  when (catch_by_enemy || palyerHitByBullet) $ do
                                                     life .= (cur_life - 1)
                                                   cur_glucoses <- use glucoses
                                                   when (isGlucoseAtPos bactPosition cur_glucoses) $ do
@@ -344,6 +369,11 @@ eventHandler (VtyEvent (V.EvKey (V.KChar 'g') [])) = do
                                                   enemies_list <- liftIO $ initEnemy (10 + cur_level * 3)
                                                   enemies .= enemies_list
 
+eventHandler (VtyEvent (V.EvKey (V.KChar 'b') [])) = do 
+                                                  userPos <- use bact
+                                                  oldBulletList <- use bullet
+                                                  let bulletList = generateBullet1 True userPos
+                                                  bullet .= bulletList ++ oldBulletList
 -- Put Esc to quit the game
 eventHandler (VtyEvent (V.EvKey V.KEsc []))        = halt
 eventHandler _                                     = return ()
@@ -494,3 +524,147 @@ addEnemy n cur= do
   let enem = Enemy (V2 x y) enemLife True 0
   enemies_list <- liftIO $ addEnemy (n-1) (enem:cur)
   return enemies_list
+
+moveBullets :: [Bullet] -> [Bullet]
+moveBullets [] = []
+moveBullets (b:bs) = 
+  let 
+    dir = _bulletDir b
+    V2 x y = _bulletPos b
+    newPos = case dir of
+      N -> V2 x (y+1)
+      S -> V2 x (y-1)
+      E -> V2 (x+1) y   
+      W -> V2 (x-1) y
+      NE -> V2 (x+1) (y+1)  
+      NW -> V2 (x-1) (y+1)
+      SE -> V2 (x+1) (y-1)
+      SW -> V2 (x-1) (y-1)
+    V2 newX newY = newPos
+    in
+      if newX<0 || newX>width || newY<0 || newY>height
+        then moveBullets bs
+        else (b { _bulletPos = newPos}):(moveBullets bs)
+
+generateBullet1 :: Bool -> Pos -> [Bullet]
+generateBullet1 f p = [(Bullet p N f),(Bullet p E f),(Bullet p W f),(Bullet p S f)]
+
+generateBullet2 :: Bool -> Pos -> [Bullet]
+generateBullet2 f p = [(Bullet p NE f),(Bullet p SE f),(Bullet p NW f),(Bullet p SW f)]
+
+bossShoot :: [Boss] -> [Bullet]
+bossShoot [] = []
+bossShoot (b:bs) = 
+                  let 
+                    theForm = _bossForm b
+                    bossPos = _bossPos b
+                    sleepTime = _bossSleep b
+                    ifGenerate = sleepTime == 0
+                  in
+                    if not ifGenerate
+                      then bossShoot bs
+                      else 
+                        if theForm
+                          then generateBullet1 False bossPos ++ bossShoot bs
+                          else generateBullet2 False bossPos ++ bossShoot bs
+
+
+isBulletAtPosFriendly :: Pos -> [Bullet] -> Bool
+isBulletAtPosFriendly pos bullets = any (\b -> _bulletPos b  == pos && _friendly b) bullets
+
+isBulletAtPoshostile :: Pos -> [Bullet] -> Bool
+isBulletAtPoshostile  pos bullets = any (\b -> _bulletPos b  == pos && not (_friendly b)) bullets
+
+bulletKillEnemy :: [Bullet] -> [Enemy] -> [Enemy]
+bulletKillEnemy [] e = e
+bulletKillEnemy _ [] = []
+bulletKillEnemy (b:bs) e = 
+  let
+    bulletPos = _bulletPos b
+    friendly = _friendly b
+    newE = if friendly
+            then fst (isEnemyHitBact bulletPos e)
+            else e
+  in
+    bulletKillEnemy bs newE
+
+bulletKillPlayer :: Pos -> [Bullet] -> Bool
+bulletKillPlayer p [] = False
+bulletKillPlayer p (b:bs) = 
+  let 
+    bulletPos = _bulletPos b
+    friendly = _friendly b
+    ifHit = if friendly
+              then False
+              else bulletPos==p
+    in ifHit || bulletKillPlayer p bs
+
+moveBoss :: Pos -> [Boss] -> [Boss]
+moveBoss pp [] = []
+moveBoss pp (b:bs) = 
+  let
+    Boss (V2 bx by) form b1 b2 bossLife (V2 tx ty) bT = b
+  in 
+    if bT > 0
+      then 
+          Boss (V2 bx by) (not form) b1 b2 bossLife pp (bT-1) : moveBoss pp bs
+      else
+        if bx==tx && by==ty
+          then (Boss (V2 bx by) form b1 b2 bossLife (V2 tx ty) bossSleepTime) : (moveBoss pp bs)
+          else 
+            case (compare bx tx, compare by ty) of
+              (GT, GT) -> (Boss (V2 (bx-1) (by-1)) form (moveBossBody1 (V2 (bx-1) (by-1))) (moveBossBody2 (V2 (bx-1) (by-1))) bossLife (V2 tx ty) bT) : (moveBoss pp bs)
+              (GT, EQ) -> (Boss (V2 (bx-1) by) form (moveBossBody1 (V2 (bx-1) by)) (moveBossBody2 (V2 (bx-1) by)) bossLife (V2 tx ty) bT) : (moveBoss pp bs)
+              (GT, LT) -> (Boss (V2 (bx-1) (by+1)) form (moveBossBody1 (V2 (bx-1) (by+1))) (moveBossBody2 (V2 (bx-1) (by+1))) bossLife (V2 tx ty) bT) : (moveBoss pp bs)
+              (EQ, GT) -> (Boss (V2 bx (by-1)) form (moveBossBody1 (V2 bx (by-1))) (moveBossBody2 (V2 bx (by-1))) bossLife (V2 tx ty) bT) : (moveBoss pp bs)
+              (EQ, LT) -> (Boss (V2 bx (by+1)) form (moveBossBody1 (V2 bx (by+1))) (moveBossBody2 (V2 bx (by+1))) bossLife (V2 tx ty) bT) : (moveBoss pp bs)
+              (LT, GT) -> (Boss (V2 (bx+1) (by-1)) form (moveBossBody1 (V2 (bx+1) (by-1))) (moveBossBody2 (V2 (bx+1) (by-1))) bossLife (V2 tx ty) bT) : (moveBoss pp bs)
+              (LT, EQ) -> (Boss (V2 (bx+1) by) form (moveBossBody1 (V2 (bx+1) by)) (moveBossBody2 (V2 (bx+1) by)) bossLife (V2 tx ty) bT) : (moveBoss pp bs)
+              (LT, LT) -> (Boss (V2 (bx+1) (by+1)) form (moveBossBody1 (V2 (bx+1) (by+1))) (moveBossBody2 (V2 (bx+1) (by+1))) bossLife (V2 tx ty) bT) : (moveBoss pp bs)
+
+moveBossBody1 :: Pos -> [Pos]
+moveBossBody1 (V2 x y) = [V2 (x+1) y, V2 (x-1) y, V2 x (y+1), V2 x (y-1)]
+
+moveBossBody2 :: Pos -> [Pos]
+moveBossBody2 (V2 x y) = [V2 (x+1) (y+1), V2 (x-1) (y+1), V2 (x+1) (y-1), V2 (x-1) (y-1)]
+
+isBossCoreAtPos :: Pos -> [Boss] -> Bool
+isBossCoreAtPos pos bosses = any (\b -> _bossPos b == pos) bosses
+
+isBossBody1AtPos_form1 :: Pos -> [Boss] -> Bool
+isBossBody1AtPos_form1 pos [] = False
+isBossBody1AtPos_form1 pos (b:bs) = 
+  let 
+    body1 = _bossBody1 b
+    theForm = _bossForm b
+    isAt = any (\p -> p == pos) body1
+  in (isAt && theForm) || (isBossBody1AtPos_form1 pos bs)
+
+
+isBossBody1AtPos_form2 :: Pos -> [Boss] -> Bool
+isBossBody1AtPos_form2 pos [] = False
+isBossBody1AtPos_form2 pos (b:bs) = 
+  let 
+    body1 = _bossBody1 b
+    theForm = _bossForm b
+    isAt = any (\p -> p == pos) body1
+  in (isAt && (not theForm)) || (isBossBody1AtPos_form2 pos bs)
+
+isBossBody2AtPos_form1 :: Pos -> [Boss] -> Bool
+isBossBody2AtPos_form1 pos [] = False
+isBossBody2AtPos_form1 pos (b:bs) = 
+  let 
+    body2 = _bossBody2 b
+    theForm = _bossForm b
+    isAt = any (\p -> p == pos) body2
+  in (isAt && theForm) || (isBossBody2AtPos_form1 pos bs)
+
+
+isBossBody2AtPos_form2 :: Pos -> [Boss] -> Bool
+isBossBody2AtPos_form2 pos [] = False
+isBossBody2AtPos_form2 pos (b:bs) = 
+  let 
+    body2 = _bossBody2 b
+    theForm = _bossForm b
+    isAt = any (\p -> p == pos) body2
+  in (isAt && (not theForm)) || (isBossBody2AtPos_form2 pos bs)
