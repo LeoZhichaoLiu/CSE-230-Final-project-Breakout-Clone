@@ -30,6 +30,7 @@ import qualified Data.Sequence as S
 import Linear.V2 (V2(..), _x, _y)
 import System.Random (randomRIO)
 import Data.List
+import qualified Brick.Widgets.Border.Style as BS
 
 data Event = Event 
 
@@ -61,8 +62,11 @@ main = do
 
 -- Function to draw the UI of the game, composed of Socre part + board part
 drawApp :: GameState -> [Widget Name]
-drawApp state = [ C.center $ padRight (Pad 3) (vBox[(drawLife state), (drawScore state)]) 
-                  <+> drawBoard state <+>  padRight (Pad 3) (vBox[(drawDead state), (drawWin state)]) ]
+drawApp state = [ C.center 
+                  $ padRight (Pad 3) (vBox[(drawLife state), (drawScore state), (drawBullet state)]) 
+                  <+>  padRight (Pad 3) (vBox[(drawDead state), (drawWin state)]) 
+                  <+> drawBoard state  
+                  ]
 
 
 -- Dead Part
@@ -101,10 +105,17 @@ drawLife state = withBorderStyle BS.unicodeBold
   -- Update the life everytime according to the game state
   $ str $ (show (state ^. life))
 
+-- Bullet Part
+drawBullet :: GameState -> Widget Name
+drawBullet state = withBorderStyle BS.unicodeBold
+  $ B.borderWithLabel (str "Bullet Number")
+  $ padAll 2
+  -- Update the life everytime according to the game state
+  $ str $ (show (state ^. playerBulletNum))
 
 -- Board Part 
 drawBoard :: GameState -> Widget Name
-drawBoard state = withBorderStyle BS.unicodeBold
+drawBoard state = withBorderStyle (BS.borderStyleFromChar ' ')
   $ B.borderWithLabel (str $ ("  Level  " ++ show (state ^. level) ++ "  ")) 
   -- Use vBox + hBox to create board with 40x40 cells
   $ vBox [hBox $ createCellList a | a <- [height-1,height-2..0]]
@@ -114,6 +125,7 @@ drawBoard state = withBorderStyle BS.unicodeBold
     createCell pos = if pos == (state ^. bact) then withAttr (attrName "bactAttr") (str "🦠")
                      else if isGlucoseAtPos pos (state ^. glucoses) then withAttr (attrName "glucAttr") (str "🍬")
                      else if isEnemyAtPos pos (state ^. enemies) then withAttr (attrName "enemyAttr") (str "👾")
+                     else if snd (isCorpAtPos pos (state ^. enemies)) then withAttr (attrName "enemyAttr") (str "⚰️")
                      else  withAttr (attrName "spaceAttr") (str "  ")
 
 
@@ -196,7 +208,7 @@ eventHandler (VtyEvent (V.EvKey V.KRight [])) = do
                                                   if (ifEnd || ifWin) 
                                                     then return ()
                                                   else do
-                                                    dir .= East
+                                                    dir .= E
                                                     bact %= over _x (\x ->
                                                         if x + 1 < width
                                                           then (x + 1)
@@ -216,6 +228,12 @@ eventHandler (VtyEvent (V.EvKey V.KRight [])) = do
                                                       (cur_g :| next_g) <- use future_glucoses
                                                       future_glucoses .= next_g
                                                       glucoses .= [Glucose (cur_g)]
+                                                  let (newnewEnemyList, corpHit) = isCorpAtPos bactPosition newEnemyList
+                                                  when (corpHit) $ do
+                                                    playerBulletNum %= (+1)
+                                                    enemies .= newnewEnemyList
+
+
 
 eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do      
                                                   ifEnd <- use end
@@ -223,7 +241,7 @@ eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do
                                                   if (ifEnd || ifWin) 
                                                     then return ()
                                                   else do
-                                                    dir .= West   
+                                                    dir .= W   
                                                     bact %= over _x (\x ->
                                                         if x - 1 > -1
                                                           then (x - 1)
@@ -242,13 +260,17 @@ eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do
                                                       (cur_g :| next_g) <- use future_glucoses
                                                       future_glucoses .= next_g
                                                       glucoses .= [Glucose (cur_g)]
+                                                  let (newnewEnemyList, corpHit) = isCorpAtPos bactPosition newEnemyList
+                                                  when (corpHit) $ do
+                                                    playerBulletNum %= (+1)
+                                                    enemies .= newnewEnemyList
 eventHandler (VtyEvent (V.EvKey V.KUp [])) = do
                                                 ifEnd <- use end
                                                 ifWin <- use win
                                                 if (ifEnd || ifWin) 
                                                   then return ()
                                                 else do
-                                                  dir .= North
+                                                  dir .= N
                                                   bact %= over _y (\x ->
                                                         if x + 1 < height
                                                           then (x + 1)
@@ -268,13 +290,17 @@ eventHandler (VtyEvent (V.EvKey V.KUp [])) = do
                                                       (cur_g :| next_g) <- use future_glucoses
                                                       future_glucoses .= next_g
                                                       glucoses .= [Glucose (cur_g)]
+                                                  let (newnewEnemyList, corpHit) = isCorpAtPos bactPosition newEnemyList
+                                                  when (corpHit) $ do
+                                                    playerBulletNum %= (+1)
+                                                    enemies .= newnewEnemyList
 eventHandler (VtyEvent (V.EvKey V.KDown [])) = do
                                                   ifEnd <- use end
                                                   ifWin <- use win
                                                   if (ifEnd || ifWin) 
                                                     then return ()
                                                   else do
-                                                    dir .= South
+                                                    dir .= S
                                                     bact %= over _y (\x ->
                                                         if x - 1 > -1
                                                           then (x - 1)
@@ -293,6 +319,10 @@ eventHandler (VtyEvent (V.EvKey V.KDown [])) = do
                                                       (cur_g :| next_g) <- use future_glucoses
                                                       future_glucoses .= next_g
                                                       glucoses .= [Glucose (cur_g)]
+                                                  let (newnewEnemyList, corpHit) = isCorpAtPos bactPosition newEnemyList
+                                                  when (corpHit) $ do
+                                                    playerBulletNum %= (+1)
+                                                    enemies .= newnewEnemyList
 
 eventHandler (VtyEvent (V.EvKey (V.KChar 'r') [])) = do 
                                                   bact .= (V2 10 10)
@@ -325,7 +355,8 @@ theMap = attrMap V.defAttr
     [   (attrName "bactAttr", V.black `on` V.black),  
         (attrName "glucAttr", V.black `on` V.black),  
         (attrName "spaceAttr", V.black `on` V.black),  -- Board is White
-        (attrName "enemyAttr", V.black `on` V.black) 
+        (attrName "enemyAttr", V.black `on` V.black),
+        (attrName "corpAttr", V.black `on` V.black)
     ]
 
 
@@ -359,6 +390,13 @@ chaseY thePos bactPos =
 isEnemyAtPos :: Pos -> [Enemy] -> Bool
 isEnemyAtPos pos enemies = any (\enemy -> _enPos enemy == pos && _enAlive enemy) enemies
 
+isCorpAtPos :: Pos -> [Enemy] -> ([Enemy], Bool)
+isCorpAtPos pos enemies = 
+  let (corps, remainingEnemies) = partition (\enemy -> _enPos enemy == pos && not (_enAlive enemy) && (_corpsTime enemy)>=0) enemies
+      hit = not (null corps)
+      update_corps = map (\enemy -> enemy { _corpsTime = 0 }) corps
+  in (update_corps++remainingEnemies, hit)
+
 updateEnemyPos :: Pos -> [Enemy] -> IO [Enemy]
 updateEnemyPos bacPos enemies = 
     mapM (\enemy -> updateEnemyChasePlayer bacPos enemy) enemies
@@ -385,20 +423,26 @@ updateEnemiesLife enemies =
 updateEnemyLife :: Enemy -> IO Enemy
 updateEnemyLife e = 
   case e of
-    Enemy _ _ False -> return e
-    Enemy p 0 True -> do 
+    Enemy _ _ False (-1) -> do 
+                            return e
+    Enemy _ _ False 0 -> do 
                         x <- randomRIO (1, width) :: IO Int
                         y <- randomRIO (1, 2) :: IO Int
                         let result = if y == 1 then height else 0
-                        return (Enemy (V2 x y) 0 False)
-    Enemy p n True -> return (Enemy p (n-1) True)
+                        return (Enemy (V2 x y) 0 False (-1))
+    Enemy p l False n -> return (Enemy p l False (n-1))
+    Enemy p 0 True _ -> do 
+                        return (Enemy p 0 False corpTime)
+    Enemy p n True _ -> return (Enemy p (n-1) True 0)
 
 reviveEnemy :: [Enemy] -> [Enemy]
 reviveEnemy [] = []
 reviveEnemy (x:xs) = case x of
-  Enemy _ _ True -> x:(reviveEnemy xs)
-  Enemy p _ False -> (Enemy p enemLife True):xs
+  Enemy p _ False (-1) -> (Enemy p enemLife True 0):xs
+  Enemy _ _ True _ -> x:(reviveEnemy xs)
+  Enemy _ _ False _ -> x:(reviveEnemy xs)
 
+-- updateBulletPosition :: [Bullet] -> [Bullet]
 
 isGlucoseAtPos :: Pos -> [Glucose] -> Bool
 isGlucoseAtPos pos glucoses = any (\g -> _gluPos g == pos) glucoses
@@ -431,24 +475,22 @@ antiChaseY thePos bactPos =
 
 -- 将处于Pos上的的敌人的 _enAlive 设置为 False
 setEnemyDead :: Pos -> [Enemy] -> [Enemy]
-setEnemyDead pos enemies = map (\enemy -> if _enPos enemy == pos then enemy { _enAlive = False } else enemy) enemies
+setEnemyDead pos enemies = map (\enemy -> if _enPos enemy == pos then enemy { _enAlive = False , _corpsTime = corpTime} else enemy) enemies
 
 -- 判断敌人是否碰撞在Pos这个位置上
 isEnemyHitBact :: Pos -> [Enemy] -> ([Enemy], Bool)
 isEnemyHitBact pos enemies =
   let (hitEnemies, remainingEnemies) = partition (\enemy -> _enPos enemy == pos && _enAlive enemy) enemies
       hit = not (null hitEnemies)
-      updatedEnemies = map (\enemy -> if _enPos enemy == pos then enemy { _enAlive = False } else enemy) remainingEnemies
-  in (updatedEnemies, hit)
+      updatedEnemies = map (\enemy -> if _enPos enemy == pos then enemy { _enAlive = False, _corpsTime = corpTime } else enemy) hitEnemies
+  in (updatedEnemies++remainingEnemies, hit)
 
 addEnemy :: Int -> [Enemy] -> IO [Enemy]
-addEnemy 1 cur= do
-  x <- randomRIO (1, width) :: IO Int
-  let enem = Enemy (V2 x height) enemLife True
-  return (enem:cur)
+addEnemy 0 cur= do
+  return cur
 addEnemy n cur= do
   x <- randomRIO (1, width) :: IO Int
   let y = if (n `mod` 2) == 0 then 0 else height
-  let enem = Enemy (V2 x y) enemLife True
+  let enem = Enemy (V2 x y) enemLife True 0
   enemies_list <- liftIO $ addEnemy (n-1) (enem:cur)
   return enemies_list
