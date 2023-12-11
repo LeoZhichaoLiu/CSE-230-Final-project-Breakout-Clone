@@ -22,6 +22,8 @@ data GameState = GameState
   { _bact  :: Pos        -- Bacteria Position
   , _dir    :: Direction    -- Current Bacteria Position (to determine what it should go)
   , _life  :: Int   
+  , _playerBulletNum :: Int
+  , _bullet :: [Bullet]
   , _glucoses   :: [Glucose]       -- Glucose Position
   , _future_glucoses :: List Pos
   , _enemies  :: [Enemy]  -- List of next Food Positio
@@ -31,16 +33,22 @@ data GameState = GameState
   , _level :: Int    -- The Game Level
   } deriving (Show)
 
+data Bullet = Bullet
+  { _bulletPos :: Pos,
+    _bulletDir :: Direction
+  } deriving (Show)
 
 data Enemy = Enemy
   { _enPos :: Pos,
     _enLife :: Int,
-    _enAlive :: Bool
+    _enAlive :: Bool,
+    _corpsTime :: Int
   } deriving (Show)
-height, width, enemLife :: Int
+height, width, enemLife, corpTime :: Int
 height = 40
-width = 40
-enemLife = 100
+width = 50
+enemLife = 80
+corpTime = 20
 
 data Glucose = Glucose
   { _gluPos :: Pos
@@ -51,10 +59,14 @@ data Glucose = Glucose
 type Pos = V2 Int
 
 data Direction
-  = North
-  | South
-  | East
-  | West
+  = N
+  | S
+  | E
+  | W
+  | NE
+  | NW
+  | SE
+  | SW
   deriving (Eq, Show)
 
 data List a = a :| List a
@@ -76,6 +88,8 @@ initState = do
       state  = GameState
         { _bact  = (V2 xm ym)
         , _life = 1
+        , _playerBulletNum = 0
+        , _bullet = []
         --, _glucoses   = [(Glucose (V2 5 15)), (Glucose (V2 6 25))]
         , _glucoses = [Glucose (f)]
         , _future_glucoses = fs
@@ -83,7 +97,7 @@ initState = do
         , _end    = False
         , _enemies = enemList
         , _score  = 0
-        , _dir    = East
+        , _dir    = E
         , _level   = 1
         }
   -- Use Monad to input the current state to nextFood Monad Function (continue update state)
@@ -93,12 +107,12 @@ initState = do
 initEnemy :: Int -> IO [Enemy]
 initEnemy 1 = do
   x <- randomRIO (1, width) :: IO Int
-  let enem = Enemy (V2 x height) enemLife True
+  let enem = Enemy (V2 x height) enemLife True 0
   return [enem]
 initEnemy n = do
   x <- randomRIO (1, width) :: IO Int
   let y = if (n `mod` 2) == 0 then 0 else height
-  let enem = Enemy (V2 x y) enemLife False
+  let enem = Enemy (V2 x y) enemLife False 0
   l <- initEnemy (n-1)
   return (enem:l)
 
