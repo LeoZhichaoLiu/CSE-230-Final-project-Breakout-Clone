@@ -14,7 +14,7 @@ height = 40
 width = 50
 enemLife = 80
 corpTime = 20
-bossLife = 5
+bossLife = 10
 bossSleepTime = 11
 
 type Pos = V2 Int
@@ -92,7 +92,7 @@ initState :: IO GameState
 initState = do
   -- Randomlize the location of glucoses
   (g :| gs) <- fromList . randomRs (V2 0 0, V2 (width - 1) (height - 1)) <$> newStdGen
-  enemList <- initEnemy 10  
+  enemList <- initEnemyGradual 10  
   let x_m = width `div` 2
       y_m = height `div` 2
       -- Intilize the state
@@ -114,16 +114,25 @@ initState = do
   return $ state
 
 -- Initialize the Enemy information
-initEnemy :: Int -> IO [Enemy]
-initEnemy 1 = do
+initEnemyGradual :: Int -> IO [Enemy]
+initEnemyGradual 1 = do
   x <- randomRIO (1, width) :: IO Int
   let enem = Enemy (V2 x height) enemLife True 0
   return [enem]
-initEnemy n = do
+initEnemyGradual n = do
   x <- randomRIO (1, width) :: IO Int
   let y = if (n `mod` 2) == 0 then 0 else height
   let enem = Enemy (V2 x y) enemLife False 0
-  l <- initEnemy (n-1)
+  l <- initEnemyGradual (n-1)
+  return (enem:l)
+
+initEnemySudden :: Int -> IO [Enemy]
+initEnemySudden 0 = return []
+initEnemySudden n = do
+  x <- randomRIO (1, width) :: IO Int
+  let y = if (n `mod` 2) == 0 then 0 else height
+  let enem = Enemy (V2 x y) enemLife True 0
+  l <- initEnemySudden (n-1)
   return (enem:l)
 
 
