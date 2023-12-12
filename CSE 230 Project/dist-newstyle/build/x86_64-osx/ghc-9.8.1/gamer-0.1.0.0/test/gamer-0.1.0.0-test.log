@@ -1,0 +1,12 @@
+Test suite test: RUNNING...
+"sss"
+MyTestGroup
+  Adding two numbers: FAIL
+    test/Test.hs:18:
+    Should be equal
+    expected: 5
+     but got: 4
+
+1 out of 1 tests failed (0.00s)
+Test suite test: FAIL
+Test suite logged to: /Users/wangzhongyi/Desktop/CSE-230-Final-project-Breakout-Clone/230/CSE-230-Final-project-Breakout-Clone/CSE 230 Project/dist-newstyle/build/x86_64-osx/ghc-9.8.1/gamer-0.1.0.0/test/gamer-0.1.0.0-test.log
