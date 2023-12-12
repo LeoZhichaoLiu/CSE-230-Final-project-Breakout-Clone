@@ -248,18 +248,20 @@ eventHandler (VtyEvent (V.EvKey (V.KChar 'r') [])) = do
                                                     life .= 1
 
 eventHandler (VtyEvent (V.EvKey (V.KChar 'g') [])) = do 
-                                                  cur_level <- use level
-                                                  if (cur_level < 3) then do
-                                                    bact .= (V2 10 10)
-                                                    win .= False
-                                                    end .= False
-                                                    score .= 0   
-                                                    level .= (cur_level + 1) 
-                                                    enemies_list <- liftIO $ initEnemy (10 + cur_level * 3)
-                                                    enemies .= enemies_list
-                                                    when (cur_level == 2) $ do
-                                                        boss .= [generateBoss (V2 40 40)]
-                                                   else return ()
+                                                  isWin <- use win
+                                                  when (isWin) $ do
+                                                    cur_level <- use level
+                                                    when (cur_level < 3) $ do
+                                                        bact .= (V2 10 10)
+                                                        win .= False
+                                                        end .= False
+                                                        score .= 0   
+                                                        level .= (cur_level + 1) 
+                                                        enemies_list <- liftIO $ initEnemy (10 + cur_level * 3)
+                                                        enemies .= enemies_list
+                                                        when (cur_level == 2) $ do
+                                                            boss .= [generateBoss (V2 40 40)]
+
 
 eventHandler (VtyEvent (V.EvKey (V.KChar 'b') [])) = do 
                                                   cur_level <- use level
