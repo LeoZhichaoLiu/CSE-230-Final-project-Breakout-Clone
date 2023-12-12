@@ -7,7 +7,8 @@
 
 import Test.Tasty
 import Test.Tasty.HUnit
-
+import Game 
+import Setting hiding(main)
 -- A simple function to test
 add :: Int -> Int -> Int
 add a b = a + b

@@ -60,6 +60,16 @@
   (major1) == 1 && (major2) <  7 || \
   (major1) == 1 && (major2) == 7 && (minor) <= 14)
 #endif /* MIN_VERSION_extra */
+/* package gamer-0.1.0.0 */
+#ifndef VERSION_gamer
+#define VERSION_gamer "0.1.0.0"
+#endif /* VERSION_gamer */
+#ifndef MIN_VERSION_gamer
+#define MIN_VERSION_gamer(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  1 || \
+  (major1) == 0 && (major2) == 1 && (minor) <= 0)
+#endif /* MIN_VERSION_gamer */
 /* package lens-5.2.3 */
 #ifndef VERSION_lens
 #define VERSION_lens "5.2.3"

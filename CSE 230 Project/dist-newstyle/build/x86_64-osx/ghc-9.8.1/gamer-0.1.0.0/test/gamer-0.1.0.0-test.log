@@ -2,7 +2,7 @@ Test suite test: RUNNING...
 "sss"
 MyTestGroup
   Adding two numbers: FAIL
-    test/Test.hs:18:
+    test/Test.hs:19:
     Should be equal
     expected: 5
      but got: 4
