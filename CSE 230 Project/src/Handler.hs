@@ -38,8 +38,8 @@ eventHandler (AppEvent Event) = do
                                     let newEnemyAfterBullet = bulletKillEnemy bullets enemyAfterBullet
                                     enemies .= newEnemyAfterBullet
                                     bullet .= newBullets
-                                    let palyerHitByBullet = bulletKillPlayer bactPosition bullets
-                                    let newBosses = moveBoss bactPosition bosses
+                                    let palyerHitByBullet = bulletKillPlayer bactPosition bullets || isBossCoreAtPos bactPosition bosses 
+                                    let newBosses = moveBoss bactPosition (bulletKillBoss bullets bosses)
                                     boss .= newBosses
                                     cur_life <- use life
                                     when (palyerHitByBullet) $ do
@@ -157,7 +157,7 @@ eventHandler (VtyEvent (V.EvKey V.KLeft [])) = do
                                                   bullets <- use bullet
                                                   cur_life <- use life
                                                   let (newEnemyList, catch_by_enemy) = isEnemyHitBact bactPosition enemies' 
-                                                  let palyerHitByBullet = bulletKillPlayer bactPosition bullets
+                                                  let palyerHitByBullet = bulletKillPlayer bactPosition bullets 
                                                   enemies .= newEnemyList
                                                   when (catch_by_enemy || palyerHitByBullet) $ do
                                                     life .= (cur_life - 1)
@@ -189,7 +189,7 @@ eventHandler (VtyEvent (V.EvKey V.KUp [])) = do
                                                   bullets <- use bullet
                                                   cur_life <- use life
                                                   let (newEnemyList, catch_by_enemy) = isEnemyHitBact bactPosition enemies' 
-                                                  let palyerHitByBullet = bulletKillPlayer bactPosition bullets
+                                                  let palyerHitByBullet = bulletKillPlayer bactPosition bullets 
                                                   enemies .= newEnemyList
                                                   when (catch_by_enemy || palyerHitByBullet) $ do
                                                     life .= (cur_life - 1)
@@ -241,8 +241,17 @@ eventHandler (VtyEvent (V.EvKey (V.KChar 'r') [])) = do
                                                   win .= False
                                                   end .= False
                                                   score .= 0
-                                                  enemies_list <- liftIO $ initEnemy (10)
-                                                  enemies .= enemies_list
+                                                  cur_level <- use level
+                                                  when (cur_level == 1) $ do
+                                                    enemies_list <- liftIO $ initEnemyGradual (10)
+                                                    enemies .= enemies_list
+                                                  when (cur_level == 2) $ do
+                                                    enemies_list <- liftIO $ initEnemySudden (60)
+                                                    enemies .= enemies_list
+                                                  when (cur_level == 3) $ do
+                                                    boss .= [generateBoss (V2 25 40)]
+                                                    enemies_list <- liftIO $ initEnemyGradual (3)
+                                                    enemies .= enemies_list
                                                   cur_life <- use life
                                                   when (cur_life <= 0) $ do
                                                     life .= 1
@@ -257,18 +266,23 @@ eventHandler (VtyEvent (V.EvKey (V.KChar 'g') [])) = do
                                                         end .= False
                                                         score .= 0   
                                                         level .= (cur_level + 1) 
-                                                        enemies_list <- liftIO $ initEnemy (10 + cur_level * 3)
-                                                        enemies .= enemies_list
+                                                        when (cur_level == 1) $ do
+                                                            enemies_list <- liftIO $ initEnemySudden (60)
+                                                            enemies .= enemies_list
                                                         when (cur_level == 2) $ do
-                                                            boss .= [generateBoss (V2 40 40)]
-
+                                                            boss .= [generateBoss (V2 25 40)]
+                                                            enemies_list <- liftIO $ initEnemyGradual (3)
+                                                            enemies .= enemies_list
 
 eventHandler (VtyEvent (V.EvKey (V.KChar 'b') [])) = do 
                                                   cur_level <- use level
                                                   userPos <- use bact
-                                                  oldBulletList <- use bullet
-                                                  let bulletList = generateBullet1 True userPos
-                                                  bullet .= bulletList ++ oldBulletList                                            
+                                                  bulletNum <- use playerBulletNum
+                                                  when (bulletNum>0) $ do
+                                                    oldBulletList <- use bullet
+                                                    let bulletList = generateBullet1 True userPos
+                                                    bullet .= bulletList ++ oldBulletList
+                                                    playerBulletNum .= bulletNum-1                                      
 -- Put Esc to quit the game
 eventHandler (VtyEvent (V.EvKey V.KEsc []))        = halt
 eventHandler _                                     = return ()
