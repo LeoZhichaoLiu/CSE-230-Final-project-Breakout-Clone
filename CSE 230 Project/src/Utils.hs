@@ -293,3 +293,34 @@ isBossBody2AtPos_form2 pos (b:bs) =
     theForm = _bossForm b
     isAt = any (\p -> p == pos) body2
   in (isAt && (not theForm)) || (isBossBody2AtPos_form2 pos bs)
+
+bulletKillBoss :: [Bullet] -> [Boss] -> [Boss]
+bulletKillBoss [] b = b
+bulletKillBoss _ [] = []
+bulletKillBoss (b:bs) e = 
+  let
+    bulletPos = _bulletPos b
+    friendly = _friendly b
+    newE = if friendly
+            then bulletKillBossHelper bulletPos e
+            else e
+  in
+    bulletKillBoss bs newE
+
+bulletKillBossHelper :: Pos -> [Boss] -> [Boss]
+bulletKillBossHelper p [] = []
+bulletKillBossHelper p (b:bs) = 
+  let 
+    bosscore = _bossPos b
+    body1 = _bossBody1 b
+    body2 = _bossBody2 b
+    health = _bossLife b
+    ifHit = bosscore==p || any (\x -> x == p) body1 || any (\x -> x == p) body2
+  in
+    if ifHit 
+      then if (health-1)<=0
+              then bulletKillBossHelper p bs
+              else b {_bossLife = health-1} : bulletKillBossHelper p bs
+      else
+        b:bulletKillBossHelper p bs
+
