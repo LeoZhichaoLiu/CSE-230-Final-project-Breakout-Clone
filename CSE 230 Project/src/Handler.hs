@@ -74,11 +74,10 @@ eventHandler (AppEvent Event) = do
                                           -- food %= over _y (\x -> (x + randomY) `mod` height)
                                         
 
-                                    when (cur_level > 1 && the_score > 0 && the_score `mod` 100 == 0) $ do
-                                      let num = the_score `div` 100
-                                      oldEnemies <- use enemies
-                                      enemies_list <- liftIO $ addEnemy ((cur_level-1) * 3) oldEnemies -- update the new enemies list
-                                      enemies .= enemies_list
+                                    -- when (cur_level > 1 && the_score > 0 && the_score `mod` 100 == 0) $ do
+                                    --   oldEnemies <- use enemies
+                                    --   enemies_list <- liftIO $ addEnemy ((cur_level-1) * 3) oldEnemies -- update the new enemies list
+                                    --   enemies .= enemies_list
 
                                     cur_glucoses <- use glucoses
                                     when (isGlucoseAtPos bactPosition cur_glucoses) $ do
@@ -97,10 +96,10 @@ eventHandler (AppEvent Event) = do
 
                                     cur_life <- use life
                                     let dead = (cur_life <= 0)
-
+                                    cur_level <- use level
                                     if dead then do
                                       end .= True
-                                    else if (the_score == 500) then do
+                                    else if (the_score == 500) || (cur_level==3 && (length bosses)==0) then do
                                       win .= True
                                     else do 
                                       score %= (+1) 
@@ -241,6 +240,7 @@ eventHandler (VtyEvent (V.EvKey (V.KChar 'r') [])) = do
                                                   win .= False
                                                   end .= False
                                                   score .= 0
+                                                  bullet .= []
                                                   cur_level <- use level
                                                   when (cur_level == 1) $ do
                                                     enemies_list <- liftIO $ initEnemyGradual (10)
