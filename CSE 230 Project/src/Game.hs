@@ -64,14 +64,14 @@ data Boss = Boss
     _bossLife :: Int,
     _bossTarget :: Pos,
     _bossSleep :: Int
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 data Enemy = Enemy
   { _enPos :: Pos,
     _enLife :: Int,
     _enAlive :: Bool,
     _corpsTime :: Int
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 data Glucose = Glucose
   { _gluPos :: Pos
