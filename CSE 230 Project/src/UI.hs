@@ -51,7 +51,7 @@ drawWin state =
     withBorderStyle BS.unicodeBold
     $ B.borderWithLabel (str "Congratulation!")
     $ padAll 2
-    $ (str "You Reach 500 Score!\nClick G to Next Level")
+    $ (str "You Win!\nClick G to Next Level")
   else emptyWidget
 
 -- Pass Part
