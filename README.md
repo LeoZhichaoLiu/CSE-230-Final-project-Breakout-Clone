@@ -1,8 +1,9 @@
 # CSE-230-Final-project-Burp
 ## Project Proposal 
 
-### Basic Goal:
-Our primary objective is to develop an engaging and strategic TUI game named "Burp" using the Brick library. The game unfolds in a confined arena where players take control of a bacterium, strategically navigating it to consume smaller bacteria while evading larger ones. The central mechanic emphasizes growth, as successful consumption of smaller bacteria leads to the expansion of the player's bacterium, with the ultimate goal of dominating the entire arena. The detailed setup and display will involve leveraging the capabilities of the Brick library to create a visually captivating arena. We plan to implement an ASCII art-inspired design, ensuring a unique and visually appealing environment that enhances the overall gaming experience. The display will not only serve as a backdrop but also convey crucial information about the bacteria entities within the arena.
+### Basic Goal/Introcution:
+Our primary objective is to develop an engaging and strategic TUI game named "Burp" using the Brick library. The game unfolds in a confined arena where players take control of a bacterium, strategically navigating it to consume smaller bacteria while evading larger ones. In this game, you assume the role of a bacterium with two vital attributes: "Vitality" and "Energy." The bacteria begins with small Vitality and 0 energy to divide. Seize the "Glucose" scattered throughout the environment to augment your Vitality. Be wary of competing bacteria that is capable of launching attacks. Utilize your energy to split and emit bullets to escape. The detailed setup and display will involve leveraging the capabilities of the Brick library to create a visually captivating arena. We plan to implement an ASCII art-inspired design, ensuring a unique and visually appealing environment that enhances the overall gaming experience. The display will not only serve as a backdrop but also convey crucial information about the bacteria entities within the arena.
+
 
 ### Incremental Goal:
 1. Random Direction Change: Initially, the bacteria exhibits movement in four predefined directions–up, down, left and right. Each individual bacterium adheres to a fixed movement direction in the basic goal. In the Increment goal, the bacteria gains the ability to alter its movement direction randomly at any given time.
