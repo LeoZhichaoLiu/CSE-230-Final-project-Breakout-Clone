@@ -67,9 +67,24 @@ It might not be expected to meet all our goals before the deadline.
 
 To complete the games, we should at least complete the arena setting and game initialization to start a basic game model. For the more advanced game mechanism such as leveling up and random NPC movement would be put into a lower priority to accomplish before the deadline. Currently we are working on the general UI and try to finish the basic logic of game controlling. 
 
+# Installation Instructions
 
+Step 1. Download the Project.
 
+Step 2. Go under the directory of "/CSE-230-Final-project-Breakout-Clone/CSE 230 Project". Use 'ls' to check the .yaml and .cabal is under the directory.
 
-遇到过的问题：
-1. 无敌帧解决：原本在每个tick进行一个判定，但是导致了可能会在判定之间穿过去，所以就在每次移动的时候都加了对敌人和糖的判定。
-2. 
+Step 3. Run 'cabal build'
+
+Step 4. Run 'cabal run testGame' to start the Game in the terminal.
+
+Notice: Since the characters are using emoji characters, we currently only ensure that Linux or WSL on Windows VScode could display the emoji in terminal correctly. Ubuntu terminal does not support the emoji display.
+
+# Operation Instruction
+
+Movement: Press Arrow UP/DOWN/LEFT/RIGHT to move to corresponding direciton.
+
+Split: Press 'b' and consume one bullet to split.
+
+Restart Game: Press 'r'.
+
+Advance to Next Level: Press 'g' when score reaches 500 or defeat the Pathogen boss.
