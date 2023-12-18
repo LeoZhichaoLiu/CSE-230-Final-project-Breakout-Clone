@@ -89,3 +89,8 @@ Split: Press 'b' and consume one bullet to split.
 Restart Game: Press 'r'.
 
 Advance to Next Level: Press 'g' when score reaches 500 or defeat the Pathogen boss.
+
+# Source Code Acknowledgement
+
+1. The majarity of this project codes (98%+) are absolutely written by our teams. But we also reference other project just for initial architecture design, UI building, and sepcific fancy feature. The project we referenced is https://github.com/samtay/snake, which is built for traditional game "Snake". Our project is actually absolutely different to it, and only reference the very basic and tiny amount of architecture and feature when starting to write our project. To avoid any plagiarism issue, we mention this reference here, but we still want to insisit that we just reference very very small amounts of codes.
+2. Actually nearly entire of our features are absolutely created by ourselves, including Enemy System, Glucose System, Bullet System, Life System, Level System, Boss System, etcs. There are only two tiny parts of codes we may reference to Snake Project: 1. The UI setting to build the board, 2. The way to randomlize the glucoses' infinite locations (current glucose and next inifite locations). And we only referenced its idea and wrote codes by ourselves with our own styles and standard. Other than these two parts (only like 10 lines of codes), the rest of codes are 100% designed and written by ourselves. 
